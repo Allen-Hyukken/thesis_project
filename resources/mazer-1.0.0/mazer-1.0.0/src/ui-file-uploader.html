@@ -47,7 +47,7 @@
                         <div class="card-body">
                             <p class="card-text">Using the basic file uploader up, upload here to see how
                                 <code>.imgbb-filepond</code>-based basic file uploader look. You must use
-                                <code>name=image</code> or by FormData fieldName for your 
+                                <code>name=image</code> or by FormData fieldName for your
                                 input <code>type=file</code> to upload in imgBB.
                             </p>
                             <!-- imgBB file uploader -->
@@ -81,9 +81,9 @@
                     <div class="card-content">
                         <div class="card-body">
                             <p class="card-text">Using the basic table up, upload here to see how
-                                <code>.with-validation-filepond</code>-based basic file uploader look. You can use 
+                                <code>.with-validation-filepond</code>-based basic file uploader look. You can use
                                 <a href="https://pqina.nl/filepond/docs/patterns/plugins/file-validate-size/#properties" target="_blank">see here</a>
-                                or <code>required (to make your input required), data-max-file-size (to limit your input file size), 
+                                or <code>required (to make your input required), data-max-file-size (to limit your input file size),
                                 data-max-files (to limit your uploaded files), etc (start with data-)</code> attribute too to implement validation.
                             </p>
                             <!-- File uploader with validation -->
@@ -117,7 +117,7 @@
                     <div class="card-content">
                         <div class="card-body">
                             <p class="card-text">Using the basic table up, upload here to see how
-                                <code>.image-exif-filepond</code>-based basic file uploader look. This 
+                                <code>.image-exif-filepond</code>-based basic file uploader look. This
                                 helps in correctly orienting photos taken on mobile devices.
                             </p>
                             <!-- Auto image crop file uploader -->
@@ -152,7 +152,7 @@
                     <div class="card-content">
                         <div class="card-body">
                             <p class="card-text">Using the basic table up, upload here to see how
-                                <code>.image-filter-filepond</code>-based basic file uploader look. 
+                                <code>.image-filter-filepond</code>-based basic file uploader look.
                             </p>
                             <!-- Auto filter image file uploader -->
                             <input type="file" class="image-filter-filepond">
@@ -168,7 +168,7 @@
                     <div class="card-content">
                         <div class="card-body">
                             <p class="card-text">Using the basic table up, upload here to see how
-                                <code>.image-resize-filepond</code>-based basic file uploader look. 
+                                <code>.image-resize-filepond</code>-based basic file uploader look.
                             </p>
                             <!-- Auto resize image file uploader -->
                             <input type="file" class="image-resize-filepond">
@@ -222,9 +222,9 @@
         // calculates & adds resize information...
         FilePondPluginImageResize,
     );
-    
+
     // Filepond: Basic
-    FilePond.create( document.querySelector('.basic-filepond'), { 
+    FilePond.create( document.querySelector('.basic-filepond'), {
         allowImagePreview: false,
         allowMultiple: false,
         allowFileEncode: false,
@@ -232,7 +232,7 @@
     });
 
     // Filepond: Multiple Files
-    FilePond.create( document.querySelector('.multiple-files-filepond'), { 
+    FilePond.create( document.querySelector('.multiple-files-filepond'), {
         allowImagePreview: false,
         allowMultiple: true,
         allowFileEncode: false,
@@ -240,7 +240,7 @@
     });
 
     // Filepond: With Validation
-    FilePond.create( document.querySelector('.with-validation-filepond'), { 
+    FilePond.create( document.querySelector('.with-validation-filepond'), {
         allowImagePreview: false,
         allowMultiple: true,
         allowFileEncode: false,
@@ -253,8 +253,8 @@
     });
 
     // Filepond: ImgBB with server property
-    FilePond.create( document.querySelector('.imgbb-filepond'), { 
-        allowImagePreview: false, 
+    FilePond.create( document.querySelector('.imgbb-filepond'), {
+        allowImagePreview: false,
         server: {
             process: (fieldName, file, metadata, load, error, progress, abort) => {
                 // We ignore the metadata property and only send the file
@@ -283,7 +283,7 @@
                     if (this.readyState == 4) {
                         if(this.status == 200) {
                             let response = JSON.parse(this.responseText);
-                            
+
                             Toastify({
                                 text: "Success uploading to imgbb! see console f12",
                                 duration: 3000,
@@ -292,7 +292,7 @@
                                 position: "right",
                                 backgroundColor: "#4fbe87",
                             }).showToast();
-                
+
                             console.log(response);
                         } else {
                             Toastify({
@@ -302,7 +302,7 @@
                                 gravity:"bottom",
                                 position: "right",
                                 backgroundColor: "#ff0000",
-                            }).showToast();   
+                            }).showToast();
 
                             console.log("Error", this.statusText);
                         }
@@ -315,8 +315,8 @@
     });
 
     // Filepond: Image Preview
-    FilePond.create( document.querySelector('.image-preview-filepond'), { 
-        allowImagePreview: true, 
+    FilePond.create( document.querySelector('.image-preview-filepond'), {
+        allowImagePreview: true,
         allowImageFilter: false,
         allowImageExifOrientation: false,
         allowImageCrop: false,
@@ -328,8 +328,8 @@
     });
 
     // Filepond: Image Crop
-    FilePond.create( document.querySelector('.image-crop-filepond'), { 
-        allowImagePreview: true, 
+    FilePond.create( document.querySelector('.image-crop-filepond'), {
+        allowImagePreview: true,
         allowImageFilter: false,
         allowImageExifOrientation: false,
         allowImageCrop: true,
@@ -341,8 +341,8 @@
     });
 
         // Filepond: Image Exif Orientation
-    FilePond.create( document.querySelector('.image-exif-filepond'), { 
-        allowImagePreview: true, 
+    FilePond.create( document.querySelector('.image-exif-filepond'), {
+        allowImagePreview: true,
         allowImageFilter: false,
         allowImageExifOrientation: true,
         allowImageCrop: false,
@@ -355,7 +355,7 @@
 
     // Filepond: Image Filter
     FilePond.create( document.querySelector('.image-filter-filepond'), {
-        allowImagePreview: true, 
+        allowImagePreview: true,
         allowImageFilter: true,
         allowImageExifOrientation: false,
         allowImageCrop: false,
@@ -374,7 +374,7 @@
 
     // Filepond: Image Resize
     FilePond.create( document.querySelector('.image-resize-filepond'), {
-        allowImagePreview: true, 
+        allowImagePreview: true,
         allowImageFilter: false,
         allowImageExifOrientation: false,
         allowImageCrop: false,

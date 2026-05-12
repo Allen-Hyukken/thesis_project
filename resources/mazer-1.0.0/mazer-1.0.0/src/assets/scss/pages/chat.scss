@@ -1,5 +1,5 @@
 
-@import "./../variables";
+@import "../variables";
 .chat-application {
     .chat-app {
         height: calc(100vh - 9rem);
@@ -9,7 +9,7 @@
 }
 .chat-app {
     .chat-app-wrapper  {
-        
+
     }
     .chat-app-right {
         padding-left: 0;
@@ -55,7 +55,7 @@
             &:hover {
                 cursor: pointer;
             }
-            
+
             &:not(.active):hover {
                 background-color: $gray-200;
                 transition: all .1s;
@@ -93,7 +93,7 @@
             width: 100%;
             right: 0;
         }
-        
+
     }
     .messages {
         display: flex;
@@ -113,7 +113,7 @@
                 float: right;
                 background-color: $blue-400;
                 color: #fff;
-                
+
                 border-top-left-radius: 1rem;
                 border-top-right-radius: 0;
             }
@@ -135,7 +135,7 @@
             right: 0;
             bottom: 0;
             padding-left: 15px !important;
-    
+
             .chat-app-header > div {
                 padding: 0 2rem
             }

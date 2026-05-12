@@ -1,4 +1,4 @@
-@import "./../variables";
+@import "../variables";
 .media {
     display:flex;
     align-items: center;
@@ -17,7 +17,7 @@
     display: -ms-flexbox;
     display: flex;
     position: relative;
-    
+
     .app-content-overlay {
         top: 0;
         left: 0;
