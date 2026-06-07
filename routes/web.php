@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,10 +24,9 @@ Route::get('/forgot-password', function () {
     return view('auth-forgot-password');
 })->name('password.request');
 
-// Temporary logout route for development
-Route::post('/logout', function () {
-    return redirect('/login');
-})->name('logout');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+Route::post('/login',    [AuthController::class, 'login'])->name('login.post');
+Route::post('/logout',   [AuthController::class, 'logout'])->name('logout');
 
 
 /*
@@ -40,7 +40,6 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
         return view('teacher.dashboard');
     })->name('dashboard');
 
-    // Placeholders for your sidebar links
     Route::get('/classes', function () { return "Teacher Classes Page"; })->name('classes');
     Route::get('/courses', function () { return "Teacher Courses Page"; })->name('courses');
     Route::get('/learning-materials', function () { return "Materials Page"; })->name('materials');
@@ -62,7 +61,6 @@ Route::group(['prefix' => 'student', 'as' => 'student.'], function () {
         return view('student.dashboard');
     })->name('dashboard');
 
-    // Placeholders for student-specific features
     Route::get('/my-courses', function () { return "Student Courses"; })->name('courses');
     Route::get('/ai-tutor', function () { return "AI Chat Assistant"; })->name('ai-tutor');
     Route::get('/flashcards', function () { return "AI Generated Flashcards"; })->name('flashcards');

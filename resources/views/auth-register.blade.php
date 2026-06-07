@@ -20,22 +20,22 @@
                 </div>
                 <h1 class="auth-title">Acadly</h1>
                 <p class="auth-subtitle mb-5">Your course. Your AI. Your way.</p>
-                <form action="#" method="POST">
+                <form action="{{ route('register.post') }}" method="POST">
                     @csrf
                     <div class="form-group position-relative has-icon-left mb-4">
-                        <input type="text" name="email" class="form-control form-control-xl" placeholder="Email">
+                        <input type="text" name="email" class="form-control form-control-xl @error('email') is-invalid @enderror" placeholder="Email" value="{{ old('email') }}">
                         <div class="form-control-icon">
                             <i class="bi bi-envelope"></i>
                         </div>
                     </div>
                     <div class="form-group position-relative has-icon-left mb-4">
-                        <input type="text" name="username" class="form-control form-control-xl" placeholder="Username">
+                        <input type="text" name="name" class="form-control form-control-xl @error('name') is-invalid @enderror" placeholder="Username" value="{{ old('name') }}">
                         <div class="form-control-icon">
                             <i class="bi bi-person"></i>
                         </div>
                     </div>
                     <div class="form-group position-relative has-icon-left mb-4">
-                        <input type="password" name="password" class="form-control form-control-xl" placeholder="Password">
+                        <input type="password" name="password" class="form-control form-control-xl @error('password') is-invalid @enderror" placeholder="Password">
                         <div class="form-control-icon">
                             <i class="bi bi-shield-lock"></i>
                         </div>
@@ -52,19 +52,27 @@
                         <label class="form-label text-gray-600 fw-bold mb-2">I am a:</label>
                         <div class="d-flex gap-4">
                             <div class="form-check form-check-primary">
-                                <input class="form-check-input" type="radio" name="role" id="roleStudent" value="student" checked>
+                                <input class="form-check-input" type="radio" name="role" id="roleStudent" value="student" {{ old('role', 'student') === 'student' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="roleStudent">
                                     <i class="bi bi-mortarboard me-1"></i> Student
                                 </label>
                             </div>
                             <div class="form-check form-check-primary">
-                                <input class="form-check-input" type="radio" name="role" id="roleTeacher" value="teacher">
+                                <input class="form-check-input" type="radio" name="role" id="roleTeacher" value="teacher" {{ old('role') === 'teacher' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="roleTeacher">
                                     <i class="bi bi-person-video3 me-1"></i> Teacher
                                 </label>
                             </div>
                         </div>
                     </div>
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger mt-3">
+                            @foreach ($errors->all() as $error)
+                                <p class="mb-0">{{ $error }}</p>
+                            @endforeach
+                        </div>
+                    @endif
 
                     <button class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Sign Up</button>
                 </form>
