@@ -34,4 +34,35 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
         ];
     }
+
+    /**
+     * Classes this user teaches (role: teacher).
+     */
+    public function classesTaught()
+    {
+        return $this->hasMany(ClassRoom::class, 'teacher_id', 'user_id');
+    }
+
+    /**
+     * Raw enrollment records for this user (role: student).
+     */
+    public function classEnrollments()
+    {
+        return $this->hasMany(ClassEnrollment::class, 'student_id', 'user_id');
+    }
+
+    /**
+     * Classes this user has actively joined as a student.
+     */
+    public function enrolledClasses()
+    {
+        return $this->belongsToMany(
+            ClassRoom::class,
+            'class_enrollments',
+            'student_id',
+            'class_id',
+            'user_id',
+            'class_id'
+        )->wherePivot('status', 'active');
+    }
 }

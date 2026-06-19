@@ -2,6 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClassController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\CourseAiController;
+use App\Http\Controllers\ModuleController;
+use App\Http\Controllers\QuizController;
+use App\Http\Controllers\ExamController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,8 +46,33 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
         return view('teacher.dashboard');
     })->name('dashboard');
 
-    Route::get('/classes', function () { return "Teacher Classes Page"; })->name('classes');
-    Route::get('/courses', function () { return "Teacher Courses Page"; })->name('courses');
+    Route::get('/classes', [ClassController::class, 'index'])->name('classes');
+    Route::post('/classes', [ClassController::class, 'store'])->name('classes.store');
+
+    Route::get('/courses', [CourseController::class, 'index'])->name('courses');
+    Route::get('/courses/create', [CourseController::class, 'create'])->name('courses.create');
+    Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
+    Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
+    Route::post('/courses/{course}/publish', [CourseController::class, 'publish'])->name('courses.publish');
+
+    // Lessons/Topics and Activities (same table, item_type tells them apart)
+    Route::post('/courses/{course}/modules', [ModuleController::class, 'store'])->name('courses.modules.store');
+    Route::put('/courses/{course}/modules/{module}', [ModuleController::class, 'update'])->name('courses.modules.update');
+
+    // Quizzes
+    Route::post('/courses/{course}/quizzes', [QuizController::class, 'store'])->name('courses.quizzes.store');
+    Route::post('/courses/{course}/quizzes/{quiz}/publish', [QuizController::class, 'publish'])->name('courses.quizzes.publish');
+
+    // Exams (kept separate from quizzes)
+    Route::post('/courses/{course}/exams', [ExamController::class, 'store'])->name('courses.exams.store');
+    Route::post('/courses/{course}/exams/{exam}/publish', [ExamController::class, 'publish'])->name('courses.exams.publish');
+
+    // AI draft generation (read-only — saving happens through the routes above)
+    Route::post('/courses/ai/outline', [CourseAiController::class, 'outline'])->name('courses.ai.outline');
+    Route::post('/courses/{course}/ai/lesson-content', [CourseAiController::class, 'lessonContent'])->name('courses.ai.lesson-content');
+    Route::post('/courses/{course}/ai/activity', [CourseAiController::class, 'activity'])->name('courses.ai.activity');
+    Route::post('/courses/{course}/ai/assessment', [CourseAiController::class, 'assessment'])->name('courses.ai.assessment');
+
     Route::get('/learning-materials', function () { return "Materials Page"; })->name('materials');
     Route::get('/students', function () { return "Students List Page"; })->name('students');
     Route::get('/ai-generator', function () { return "AI Course Builder Page"; })->name('ai-generate');
@@ -60,6 +91,9 @@ Route::group(['prefix' => 'student', 'as' => 'student.'], function () {
     Route::get('/dashboard', function () {
         return view('student.dashboard');
     })->name('dashboard');
+
+    Route::get('/classes', [ClassController::class, 'index'])->name('classes');
+    Route::post('/classes/join', [ClassController::class, 'join'])->name('classes.join');
 
     Route::get('/my-courses', function () { return "Student Courses"; })->name('courses');
     Route::get('/ai-tutor', function () { return "AI Chat Assistant"; })->name('ai-tutor');

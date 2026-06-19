@@ -14,15 +14,15 @@
 
     <li class="sidebar-title">Learning</li>
 
-    <li class="sidebar-item">
-        <a href="#" class="sidebar-link">
+    <li class="sidebar-item {{ request()->routeIs('student.classes') ? 'active' : '' }}">
+        <a href="{{ route('student.classes') }}" class="sidebar-link">
             <i class="bi bi-book-half"></i>
             <span>My Enrolled Classes</span>
         </a>
     </li>
 
-    <li class="sidebar-item">
-        <a href="#" class="sidebar-link">
+    <li class="sidebar-item {{ request()->routeIs('student.courses') ? 'active' : '' }}">
+        <a href="{{ route('student.courses') }}" class="sidebar-link">
             <i class="bi bi-journal-text"></i>
             <span>Browse Courses</span>
         </a>
@@ -30,15 +30,15 @@
 
     <li class="sidebar-title">AI Study Tools</li>
 
-    <li class="sidebar-item">
-        <a href="#" class="sidebar-link">
+    <li class="sidebar-item {{ request()->routeIs('student.flashcards') ? 'active' : '' }}">
+        <a href="{{ route('student.flashcards') }}" class="sidebar-link">
             <i class="bi bi-layers-fill"></i>
             <span>AI Flashcards</span>
         </a>
     </li>
 
-    <li class="sidebar-item">
-        <a href="#" class="sidebar-link">
+    <li class="sidebar-item {{ request()->routeIs('student.ai-tutor') ? 'active' : '' }}">
+        <a href="{{ route('student.ai-tutor') }}" class="sidebar-link">
             <i class="bi bi-chat-quote-fill"></i>
             <span>AI Tutor Chat</span>
         </a>
@@ -152,7 +152,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h4>Continue Learning</h4>
-                            <a href="#" class="btn btn-primary btn-sm">Browse Courses</a>
+                            <a href="{{ route('student.courses') }}" class="btn btn-primary btn-sm">Browse Courses</a>
                         </div>
                         <div class="card-body">
                             @php
@@ -213,7 +213,8 @@
                     <p class="text-muted mb-0" style="font-size:13px;">
                         Welcome back! Ready to continue your AI-powered learning journey?
                     </p>
-                    <button class="btn btn-primary btn-block w-100 mt-3 font-bold">
+                    <button type="button" class="btn btn-primary btn-block w-100 mt-3 font-bold"
+                            data-bs-toggle="modal" data-bs-target="#joinClassModal">
                         <i class="bi bi-plus-circle me-1"></i> Join a Class
                     </button>
                 </div>
@@ -258,4 +259,6 @@
 
         </div>
     </section>
+
+    @include('student.partials.join-class-modal')
 @endsection
