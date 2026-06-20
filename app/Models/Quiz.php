@@ -41,4 +41,9 @@ class Quiz extends Model
     {
         return $this->hasMany(QuizQuestion::class, 'quiz_id', 'quiz_id')->orderBy('order_index');
     }
+
+    public function submissions()
+    {
+        return $this->hasMany(QuizSubmission::class, 'quiz_id', 'quiz_id');
+    }
 }

@@ -65,4 +65,20 @@ class Course extends Model
     {
         return $this->hasMany(Exam::class, 'course_id', 'course_id');
     }
+
+    /**
+     * Classes this (published) course has been posted into. Many-to-many —
+     * the same course can be posted to several class sections.
+     */
+    public function postedClasses()
+    {
+        return $this->belongsToMany(
+            ClassRoom::class,
+            'class_course_postings',
+            'course_id',
+            'class_id',
+            'course_id',
+            'class_id'
+        )->withPivot('posted_at');
+    }
 }

@@ -27,7 +27,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <h6 class="text-muted font-semibold">Active Classes</h6>
-                                    <h6 class="font-extrabold mb-0">4</h6>
+                                    <h6 class="font-extrabold mb-0">{{ $activeClassesCount }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -44,7 +44,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <h6 class="text-muted font-semibold">Courses Published</h6>
-                                    <h6 class="font-extrabold mb-0">12</h6>
+                                    <h6 class="font-extrabold mb-0">{{ $publishedCoursesCount }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -61,7 +61,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <h6 class="text-muted font-semibold">Total Students</h6>
-                                    <h6 class="font-extrabold mb-0">87</h6>
+                                    <h6 class="font-extrabold mb-0">{{ $totalStudents }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -73,12 +73,12 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="stats-icon red">
-                                        <i class="bi bi-stars"></i>
+                                        <i class="bi bi-pencil-square"></i>
                                     </div>
                                 </div>
                                 <div class="col-md-8">
-                                    <h6 class="text-muted font-semibold">AI Drafts Pending</h6>
-                                    <h6 class="font-extrabold mb-0">5</h6>
+                                    <h6 class="text-muted font-semibold">Needs Grading</h6>
+                                    <h6 class="font-extrabold mb-0">{{ $needsGradingCount }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -107,41 +107,39 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @php
-                                        $classes = [
-                                            ['name'=>'BSIT 2-A','subject'=>'Data Structures',     'students'=>32,'courses'=>3,'status'=>'active'],
-                                            ['name'=>'BSIT 2-B','subject'=>'Web Development',     'students'=>28,'courses'=>4,'status'=>'active'],
-                                            ['name'=>'BSCS 3-A','subject'=>'Algorithm Design',    'students'=>30,'courses'=>2,'status'=>'active'],
-                                            ['name'=>'BSCS 1-B','subject'=>'Intro to Programming','students'=>35,'courses'=>3,'status'=>'draft'],
-                                        ];
-                                    @endphp
-                                    @foreach($classes as $class)
+                                    @forelse ($classes as $class)
                                         <tr>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <p class="font-bold mb-0 ms-3">{{ $class['name'] }}</p>
+                                                    <p class="font-bold mb-0 ms-3">{{ $class->class_name }}</p>
                                                 </div>
-                                                <small class="text-muted ms-3">{{ $class['subject'] }}</small>
+                                                <small class="text-muted ms-3">{{ $class->subject }}</small>
                                             </td>
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <i class="bi bi-person-fill text-muted me-1"></i>
-                                                    <p class="mb-0">{{ $class['students'] }}</p>
+                                                    <p class="mb-0">{{ $class->enrollments_count }}</p>
                                                 </div>
                                             </td>
-                                            <td>{{ $class['courses'] }}</td>
+                                            <td>{{ $class->posted_courses_count }}</td>
                                             <td>
-                                                @if($class['status'] === 'active')
+                                                @if($class->is_active)
                                                     <span class="badge bg-light-success">Active</span>
                                                 @else
-                                                    <span class="badge bg-light-warning">Draft</span>
+                                                    <span class="badge bg-light-warning">Inactive</span>
                                                 @endif
                                             </td>
                                             <td>
-                                                <a href="#" class="btn btn-sm btn-outline-primary">Manage</a>
+                                                <a href="{{ route('teacher.classes.show', $class->class_id) }}" class="btn btn-sm btn-outline-primary">Manage</a>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">
+                                                No classes yet. <a href="{{ route('teacher.classes') }}">Create one</a> to get started.
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                     </tbody>
                                 </table>
                             </div>
@@ -171,33 +169,30 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @php
-                                        $activities = [
-                                            ['name'=>'Juan Dela Cruz','course'=>'Data Structures', 'activity'=>'Completed Quiz',       'score'=>'92%','time'=>'2m ago'],
-                                            ['name'=>'Maria Santos',  'course'=>'Web Development', 'activity'=>'Generated Flashcards', 'score'=>'—',  'time'=>'15m ago'],
-                                            ['name'=>'Carlo Reyes',   'course'=>'Algorithm Design','activity'=>'Completed Quiz',       'score'=>'78%','time'=>'1h ago'],
-                                            ['name'=>'Ana Flores',    'course'=>'Data Structures', 'activity'=>'Studied Materials',    'score'=>'—',  'time'=>'2h ago'],
-                                            ['name'=>'Mark Lim',      'course'=>'Web Development', 'activity'=>'Completed Quiz',       'score'=>'85%','time'=>'3h ago'],
-                                        ];
-                                    @endphp
-                                    @foreach($activities as $a)
+                                    @forelse ($recentActivity as $item)
                                         <tr>
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <div class="avatar avatar-md">
                                                     <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-light fw-bold" style="color:#435ebe;">
-                                                        {{ strtoupper(substr($a['name'],0,1)) }}
+                                                        {{ strtoupper(substr($item['student'], 0, 1)) }}
                                                     </span>
                                                     </div>
-                                                    <p class="font-bold ms-3 mb-0">{{ $a['name'] }}</p>
+                                                    <p class="font-bold ms-3 mb-0">{{ $item['student'] }}</p>
                                                 </div>
                                             </td>
-                                            <td class="text-muted">{{ $a['course'] }}</td>
-                                            <td>{{ $a['activity'] }}</td>
-                                            <td><p class="font-bold mb-0">{{ $a['score'] }}</p></td>
-                                            <td class="text-muted">{{ $a['time'] }}</td>
+                                            <td class="text-muted">{{ $item['course'] }}</td>
+                                            <td><i class="bi {{ $item['icon'] }} me-1"></i>{{ $item['action'] }}: {{ $item['title'] }}</td>
+                                            <td><p class="font-bold mb-0">{{ $item['score'] }}</p></td>
+                                            <td class="text-muted">{{ $item['when']?->diffForHumans() }}</td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">
+                                                No student activity yet. Post a course to a class to get started.
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                     </tbody>
                                 </table>
                             </div>
@@ -217,11 +212,11 @@
                     <div class="d-flex align-items-center mb-3">
                         <div class="avatar avatar-xl me-3">
                         <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-danger text-white fw-bold fs-4">
-                            {{ strtoupper(substr(auth()->user()->name ?? 'T', 0, 1)) }}
+                            {{ strtoupper(substr(auth()->user()->full_name ?? 'T', 0, 1)) }}
                         </span>
                         </div>
                         <div>
-                            <h5 class="font-bold mb-0">{{ auth()->user()->name ?? 'Teacher' }}</h5>
+                            <h5 class="font-bold mb-0">{{ auth()->user()->full_name ?? 'Teacher' }}</h5>
                             <h6 class="text-muted mb-0">Instructor</h6>
                         </div>
                     </div>
@@ -245,7 +240,7 @@
                         <span class="font-bold">AI Course Builder</span>
                     </div>
                     <p style="font-size:13px;opacity:.85;margin-bottom:16px;">
-                        Upload your materials and let AI generate course content, quizzes, and lessons automatically.
+                        Describe a topic and let Gemma 4 draft a course outline, lessons, activities, quizzes, and exams — you review and edit everything before it's saved.
                     </p>
                     <a href="{{ route('teacher.ai-generate') }}"
                        class="btn btn-block btn-xl btn-light font-bold w-100">
@@ -254,38 +249,31 @@
                 </div>
             </div>
 
-            {{-- Pending AI Drafts --}}
+            {{-- Needs Grading --}}
             <div class="card">
                 <div class="card-header">
-                    <h4>Pending AI Drafts</h4>
-                    <span class="badge bg-warning text-dark">5</span>
+                    <h4>Needs Grading</h4>
+                    <span class="badge bg-warning text-dark">{{ $needsGradingCount }}</span>
                 </div>
                 <div class="card-content pb-4">
-                    @php
-                        $drafts = [
-                            ['title'=>'Chapter 3: Linked Lists', 'course'=>'Data Structures'],
-                            ['title'=>'Intro to REST APIs',       'course'=>'Web Development'],
-                            ['title'=>'Big-O Notation Quiz',      'course'=>'Algorithm Design'],
-                        ];
-                    @endphp
-                    @foreach($drafts as $draft)
-                        <div class="recent-message d-flex px-4 py-3">
+                    @forelse ($needsGrading as $item)
+                        <a href="{{ $item['class_id'] ? route('teacher.classes.show', $item['class_id']) . '#gradebook' : '#' }}"
+                           class="recent-message d-flex px-4 py-3 text-decoration-none text-reset">
                             <div class="avatar avatar-md">
                         <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle"
                               style="background:#fef3dc;color:#f39c12;">
-                            <i class="bi bi-stars"></i>
+                            <i class="bi {{ $item['icon'] }}"></i>
                         </span>
                             </div>
                             <div class="name ms-4 flex-grow-1">
-                                <h5 class="mb-1">{{ $draft['title'] }}</h5>
-                                <h6 class="text-muted mb-0">{{ $draft['course'] }}</h6>
+                                <h5 class="mb-1" style="font-size:14px;">{{ $item['title'] }}</h5>
+                                <h6 class="text-muted mb-0" style="font-size:12px;">{{ $item['student'] }} • {{ $item['course'] }}</h6>
                             </div>
-                            <div class="d-flex gap-1 align-items-center">
-                                <button class="btn btn-sm btn-success px-2 py-1"><i class="bi bi-check-lg"></i></button>
-                                <button class="btn btn-sm btn-outline-danger px-2 py-1"><i class="bi bi-x-lg"></i></button>
-                            </div>
-                        </div>
-                    @endforeach
+                            <span class="badge bg-warning text-dark align-self-center">Grade</span>
+                        </a>
+                    @empty
+                        <p class="text-muted px-4" style="font-size:13px;">Nothing needs grading right now.</p>
+                    @endforelse
                 </div>
             </div>
 

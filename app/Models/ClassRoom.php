@@ -51,4 +51,25 @@ class ClassRoom extends Model
             'user_id'
         )->wherePivot('status', 'active');
     }
+
+    /**
+     * Courses posted into this class. Many-to-many — a class can have
+     * several courses posted to it over the term.
+     */
+    public function postedCourses()
+    {
+        return $this->belongsToMany(
+            Course::class,
+            'class_course_postings',
+            'class_id',
+            'course_id',
+            'class_id',
+            'course_id'
+        )->withPivot('posted_at');
+    }
+
+    public function materials()
+    {
+        return $this->hasMany(ClassMaterial::class, 'class_id', 'class_id')->latest('created_at');
+    }
 }

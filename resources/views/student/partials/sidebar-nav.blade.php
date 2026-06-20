@@ -9,7 +9,7 @@
 
 <li class="sidebar-title">Learning</li>
 
-<li class="sidebar-item {{ request()->routeIs('student.classes') ? 'active' : '' }}">
+<li class="sidebar-item {{ request()->routeIs('student.classes*') ? 'active' : '' }}">
     <a href="{{ route('student.classes') }}" class="sidebar-link">
         <i class="bi bi-book-half"></i>
         <span>My Enrolled Classes</span>

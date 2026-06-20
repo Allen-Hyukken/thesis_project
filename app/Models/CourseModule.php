@@ -51,6 +51,11 @@ class CourseModule extends Model
         return $this->hasMany(Exam::class, 'module_id', 'module_id');
     }
 
+    public function submissions()
+    {
+        return $this->hasMany(ActivitySubmission::class, 'module_id', 'module_id');
+    }
+
     public function isLesson(): bool
     {
         return $this->item_type === 'lesson';
