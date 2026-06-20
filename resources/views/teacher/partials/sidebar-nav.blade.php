@@ -55,8 +55,8 @@
 
 <li class="sidebar-title">Account</li>
 
-<li class="sidebar-item {{ request()->routeIs('teacher.profile') ? 'active' : '' }}">
-    <a href="{{ route('teacher.profile') }}" class="sidebar-link">
+<li class="sidebar-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+    <a href="{{ route('profile.show') }}" class="sidebar-link">
         <i class="bi bi-person-circle"></i>
         <span>My Profile</span>
     </a>

@@ -17,7 +17,15 @@ class User extends Authenticatable
         'email',
         'password_hash',
         'role',
+        'avatar',
+        'bio',
+        'program',
+        'year_level',
+        'department',
+        'position',
     ];
+
+
 
     protected $hidden = [
         'password_hash',
@@ -65,4 +73,5 @@ class User extends Authenticatable
             'class_id'
         )->wherePivot('status', 'active');
     }
+
 }

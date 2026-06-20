@@ -8,7 +8,7 @@ use App\Http\Controllers\CourseAiController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\ExamController;
-
+use App\Http\Controllers\ProfileController;
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -77,7 +77,7 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
     Route::get('/students', function () { return "Students List Page"; })->name('students');
     Route::get('/ai-generator', function () { return "AI Course Builder Page"; })->name('ai-generate');
     Route::get('/analytics', function () { return "Results Page"; })->name('results');
-    Route::get('/profile', function () { return "Teacher Profile Page"; })->name('profile');
+
 });
 
 
@@ -98,4 +98,14 @@ Route::group(['prefix' => 'student', 'as' => 'student.'], function () {
     Route::get('/my-courses', function () { return "Student Courses"; })->name('courses');
     Route::get('/ai-tutor', function () { return "AI Chat Assistant"; })->name('ai-tutor');
     Route::get('/flashcards', function () { return "AI Generated Flashcards"; })->name('flashcards');
+});
+/*
+|--------------------------------------------------------------------------
+| Profile Routes (shared — works for both students and teachers)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
