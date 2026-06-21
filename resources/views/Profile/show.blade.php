@@ -13,10 +13,12 @@
 
 @section('page-heading')
     <div class="d-flex justify-content-between align-items-center">
-        <h3>My Profile</h3>
-        <a href="{{ route('profile.edit') }}" class="btn btn-primary font-bold">
-            <i class="bi bi-pencil-square me-1"></i> Edit Profile
-        </a>
+        <h3>{{ ($isOwnProfile ?? false) ? 'My Profile' : $user->full_name . "'s Profile" }}</h3>
+        @if ($isOwnProfile ?? false)
+            <a href="{{ route('profile.edit') }}" class="btn btn-primary font-bold">
+                <i class="bi bi-pencil-square me-1"></i> Edit Profile
+            </a>
+        @endif
     </div>
 @endsection
 

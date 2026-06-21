@@ -27,7 +27,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <h6 class="text-muted font-semibold">Enrolled Classes</h6>
-                                    <h6 class="font-extrabold mb-0">3</h6>
+                                    <h6 class="font-extrabold mb-0">{{ $enrolledClassesCount }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -44,7 +44,7 @@
                                 </div>
                                 <div class="col-md-8">
                                     <h6 class="text-muted font-semibold">Avg. Score</h6>
-                                    <h6 class="font-extrabold mb-0">85%</h6>
+                                    <h6 class="font-extrabold mb-0">{{ $avgScore !== null ? $avgScore . '%' : '—' }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -56,12 +56,12 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="stats-icon purple">
-                                        <i class="bi bi-lightning-fill"></i>
+                                        <i class="bi bi-list-task"></i>
                                     </div>
                                 </div>
                                 <div class="col-md-8">
-                                    <h6 class="text-muted font-semibold">Flashcards Mastered</h6>
-                                    <h6 class="font-extrabold mb-0">124</h6>
+                                    <h6 class="text-muted font-semibold">Pending Tasks</h6>
+                                    <h6 class="font-extrabold mb-0">{{ $pendingCount }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -73,12 +73,12 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="stats-icon red">
-                                        <i class="bi bi-fire"></i>
+                                        <i class="bi bi-trophy-fill"></i>
                                     </div>
                                 </div>
                                 <div class="col-md-8">
-                                    <h6 class="text-muted font-semibold">Study Streak</h6>
-                                    <h6 class="font-extrabold mb-0">5 Days</h6>
+                                    <h6 class="text-muted font-semibold">Completed</h6>
+                                    <h6 class="font-extrabold mb-0">{{ $completedCount }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -86,46 +86,39 @@
                 </div>
             </div>
 
-            {{-- Continue Learning --}}
+            {{-- My Classes --}}
             <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4>Continue Learning</h4>
-                            <a href="{{ route('student.courses') }}" class="btn btn-primary btn-sm">Browse Courses</a>
+                            <h4>My Classes</h4>
+                            <a href="{{ route('student.classes') }}" class="btn btn-primary btn-sm">View All</a>
                         </div>
                         <div class="card-body">
-                            @php
-                                $myClasses = [
-                                    ['name'=>'Data Structures',       'teacher'=>'Dr. Ramos',  'progress'=>75, 'color'=>'#435ebe'],
-                                    ['name'=>'Web Development',       'teacher'=>'Prof. Sy',   'progress'=>40, 'color'=>'#198754'],
-                                    ['name'=>'Intellectual Property', 'teacher'=>'Atty. Cruz', 'progress'=>10, 'color'=>'#c0392b'],
-                                ];
-                            @endphp
-                            @foreach($myClasses as $class)
+                            @forelse ($classes as $class)
                                 <div class="d-flex align-items-center mb-4">
                                     <div class="avatar avatar-lg me-3">
                                         <div class="d-flex align-items-center justify-content-center w-100 h-100 rounded bg-light">
-                                            <i class="bi bi-journal-code fs-4" style="color:{{ $class['color'] }};"></i>
+                                            <i class="bi bi-journal-code fs-4" style="color:#435ebe;"></i>
                                         </div>
                                     </div>
                                     <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <h6 class="mb-0 font-bold">{{ $class['name'] }}</h6>
-                                            <span class="font-bold">{{ $class['progress'] }}%</span>
-                                        </div>
-                                        <p class="text-muted mb-1" style="font-size:12px;">Instructor: {{ $class['teacher'] }}</p>
-                                        <div class="progress" style="height:5px;">
-                                            <div class="progress-bar" role="progressbar"
-                                                 style="width:{{ $class['progress'] }}%;background-color:{{ $class['color'] }};">
-                                            </div>
-                                        </div>
+                                        <h6 class="mb-1 font-bold">{{ $class->class_name }}</h6>
+                                        <p class="text-muted mb-0" style="font-size:12px;">
+                                            Instructor: {{ $class->teacher->full_name ?? 'Unknown' }}
+                                            • {{ $class->posted_courses_count }} course{{ $class->posted_courses_count === 1 ? '' : 's' }}
+                                        </p>
                                     </div>
                                     <div class="ms-3">
-                                        <a href="#" class="btn btn-sm btn-outline-primary">Open</a>
+                                        <a href="{{ route('student.classes.show', $class->class_id) }}" class="btn btn-sm btn-outline-primary">Open</a>
                                     </div>
                                 </div>
-                            @endforeach
+                            @empty
+                                <p class="text-muted mb-0">
+                                    You haven't joined any classes yet.
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#joinClassModal">Join one with a class code.</a>
+                                </p>
+                            @endforelse
                         </div>
                     </div>
                 </div>
@@ -140,11 +133,16 @@
             <div class="card">
                 <div class="card-body py-4 px-4">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="avatar avatar-xl me-3">
-                        <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-danger text-white fw-bold fs-4">
-                            {{ strtoupper(substr(auth()->user()->full_name ?? 'S', 0, 1)) }}
-                        </span>
-                        </div>
+                        <a href="{{ route('profile.show') }}" class="avatar avatar-xl me-3 text-decoration-none">
+                            @if (auth()->user()->avatar)
+                                <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="Avatar"
+                                     class="rounded-circle w-100 h-100" style="object-fit:cover;">
+                            @else
+                                <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-danger text-white fw-bold fs-4">
+                                    {{ strtoupper(substr(auth()->user()->full_name ?? 'S', 0, 1)) }}
+                                </span>
+                            @endif
+                        </a>
                         <div>
                             <h5 class="font-bold mb-0">{{ auth()->user()->full_name ?? 'Student' }}</h5>
                             <h6 class="text-muted mb-0">Student</h6>
@@ -160,19 +158,35 @@
                 </div>
             </div>
 
-            {{-- AI Suggestion --}}
-            <div class="card" style="background:linear-gradient(135deg,#435ebe 0%,#6f42c1 100%);color:#fff;">
-                <div class="card-body">
-                <span class="badge bg-white text-primary fw-bold mb-2" style="font-size:11px;">
-                    <i class="bi bi-stars me-1"></i> AI SUGGESTION
-                </span>
-                    <h5 class="font-bold mb-1">Review Needed!</h5>
-                    <p style="font-size:13px;opacity:.85;margin-bottom:16px;">
-                        You haven't reviewed "Big-O Notation" flashcards in 3 days.
-                    </p>
-                    <button class="btn btn-block btn-xl btn-light font-bold w-100">
-                        Start Review
-                    </button>
+            {{-- Pending Tasks --}}
+            <div class="card">
+                <div class="card-header">
+                    <h4>Pending Tasks</h4>
+                    <span class="badge bg-warning text-dark">{{ $pendingCount }}</span>
+                </div>
+                <div class="card-content pb-4">
+                    @forelse ($pendingTasks as $task)
+                        <a href="{{ $task['link'] ?? ($task['class_id'] ? route('student.classes.show', $task['class_id']) : '#') }}"
+                           class="recent-message d-flex px-4 py-3 text-decoration-none text-reset">
+                            <div class="avatar avatar-md">
+                                <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle"
+                                      style="background:#eef1fb;color:#435ebe;">
+                                    <i class="bi {{ $task['icon'] }}"></i>
+                                </span>
+                            </div>
+                            <div class="name ms-4 flex-grow-1">
+                                <h5 class="mb-1" style="font-size:14px;">{{ $task['title'] }}</h5>
+                                <h6 class="text-muted mb-0" style="font-size:12px;">
+                                    {{ $task['type'] }} • {{ $task['course'] }}
+                                    @if ($task['due_at'])
+                                        • Due {{ $task['due_at']->format('M j') }}
+                                    @endif
+                                </h6>
+                            </div>
+                        </a>
+                    @empty
+                        <p class="text-muted px-4" style="font-size:13px;">You're all caught up — nothing pending right now.</p>
+                    @endforelse
                 </div>
             </div>
 

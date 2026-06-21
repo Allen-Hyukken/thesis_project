@@ -210,11 +210,16 @@
             <div class="card">
                 <div class="card-body py-4 px-4">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="avatar avatar-xl me-3">
-                        <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-danger text-white fw-bold fs-4">
-                            {{ strtoupper(substr(auth()->user()->full_name ?? 'T', 0, 1)) }}
-                        </span>
-                        </div>
+                        <a href="{{ route('profile.show') }}" class="avatar avatar-xl me-3 text-decoration-none">
+                            @if (auth()->user()->avatar)
+                                <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="Avatar"
+                                     class="rounded-circle w-100 h-100" style="object-fit:cover;">
+                            @else
+                                <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-danger text-white fw-bold fs-4">
+                                    {{ strtoupper(substr(auth()->user()->full_name ?? 'T', 0, 1)) }}
+                                </span>
+                            @endif
+                        </a>
                         <div>
                             <h5 class="font-bold mb-0">{{ auth()->user()->full_name ?? 'Teacher' }}</h5>
                             <h6 class="text-muted mb-0">Instructor</h6>
@@ -257,7 +262,7 @@
                 </div>
                 <div class="card-content pb-4">
                     @forelse ($needsGrading as $item)
-                        <a href="{{ $item['class_id'] ? route('teacher.classes.show', $item['class_id']) . '#gradebook' : '#' }}"
+                        <a href="{{ $item['class_id'] ? route('teacher.classes.gradebook', $item['class_id']) : '#' }}"
                            class="recent-message d-flex px-4 py-3 text-decoration-none text-reset">
                             <div class="avatar avatar-md">
                         <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle"
