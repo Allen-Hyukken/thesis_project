@@ -74,4 +74,18 @@ class User extends Authenticatable
         )->wherePivot('status', 'active');
     }
 
+    public function activitySubmissions()
+    {
+        return $this->hasMany(ActivitySubmission::class, 'student_id', 'user_id');
+    }
+
+    public function quizSubmissions()
+    {
+        return $this->hasMany(QuizSubmission::class, 'student_id', 'user_id');
+    }
+
+    public function examSubmissions()
+    {
+        return $this->hasMany(ExamSubmission::class, 'student_id', 'user_id');
+    }
 }

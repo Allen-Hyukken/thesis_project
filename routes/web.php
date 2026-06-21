@@ -12,6 +12,7 @@ use App\Http\Controllers\ExamController;
 use App\Http\Controllers\GradebookController;
 use App\Http\Controllers\StudentCourseController;
 use App\Http\Controllers\TeacherDashboardController;
+use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\ActivitySubmissionController;
 use App\Http\Controllers\QuizAttemptController;
 use App\Http\Controllers\ExamAttemptController;
@@ -58,19 +59,22 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
     Route::post('/classes', [ClassController::class, 'store'])->name('classes.store');
     Route::get('/classes/{class}', [ClassController::class, 'show'])->name('classes.show');
 
+    // Members — its own page now
+    Route::get('/classes/{class}/members', [ClassController::class, 'members'])->name('classes.members.index');
+    Route::post('/classes/{class}/members/{student}/kick', [ClassController::class, 'kickMember'])->name('classes.members.kick');
+
     // Posting courses into a class (many-to-many)
     Route::post('/classes/{class}/courses', [ClassController::class, 'postCourse'])->name('classes.courses.post');
     Route::delete('/classes/{class}/courses/{course}', [ClassController::class, 'unpostCourse'])->name('classes.courses.unpost');
 
-    // Members drawer — kicking
-    Route::post('/classes/{class}/members/{student}/kick', [ClassController::class, 'kickMember'])->name('classes.members.kick');
-
-    // Files drawer
+    // Files — its own page now
+    Route::get('/classes/{class}/materials', [ClassMaterialController::class, 'index'])->name('classes.materials.index');
     Route::post('/classes/{class}/materials', [ClassMaterialController::class, 'store'])->name('classes.materials.store');
     Route::get('/classes/{class}/materials/{material}/download', [ClassMaterialController::class, 'download'])->name('classes.materials.download');
     Route::delete('/classes/{class}/materials/{material}', [ClassMaterialController::class, 'destroy'])->name('classes.materials.destroy');
 
-    // Gradebook drawer — grading actions
+    // Gradebook — its own page now
+    Route::get('/classes/{class}/gradebook', [GradebookController::class, 'show'])->name('classes.gradebook');
     Route::post('/gradebook/activities/{submission}/grade', [GradebookController::class, 'gradeActivity'])->name('gradebook.activities.grade');
     Route::post('/gradebook/quiz-answers/{answer}/grade', [GradebookController::class, 'gradeQuizAnswer'])->name('gradebook.quiz-answers.grade');
     Route::post('/gradebook/exam-answers/{answer}/grade', [GradebookController::class, 'gradeExamAnswer'])->name('gradebook.exam-answers.grade');
@@ -113,16 +117,23 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
 */
 Route::group(['prefix' => 'student', 'as' => 'student.'], function () {
 
-    Route::get('/dashboard', function () {
-        return view('student.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/classes', [ClassController::class, 'index'])->name('classes');
     Route::post('/classes/join', [ClassController::class, 'join'])->name('classes.join');
     Route::get('/classes/{class}', [ClassController::class, 'show'])->name('classes.show');
 
+    // Members — its own page now (read-only roster)
+    Route::get('/classes/{class}/members', [ClassController::class, 'members'])->name('classes.members.index');
+
+    // Files — its own page now (download only)
+    Route::get('/classes/{class}/materials', [ClassMaterialController::class, 'index'])->name('classes.materials.index');
     Route::get('/classes/{class}/materials/{material}/download', [ClassMaterialController::class, 'download'])->name('classes.materials.download');
 
+    // My Scores — its own page now
+    Route::get('/classes/{class}/scores', [GradebookController::class, 'myScores'])->name('classes.scores');
+
+    // Taking a posted course
     Route::get('/classes/{class}/courses/{course}', [StudentCourseController::class, 'show'])->name('classes.courses.show');
 
     Route::post('/activities/{module}/submit', [ActivitySubmissionController::class, 'store'])->name('activities.submit');
@@ -156,4 +167,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/{user}', [ProfileController::class, 'showUser'])->name('profile.view');
 });

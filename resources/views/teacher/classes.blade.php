@@ -45,7 +45,7 @@
                             <p class="mb-3" style="font-size:13px;">{{ \Illuminate\Support\Str::limit($class->description, 90) }}</p>
                         @endif
 
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="badge bg-light text-dark border" style="font-size:13px;letter-spacing:1px;">
                                 {{ $class->class_code }}
                             </span>
@@ -54,6 +54,10 @@
                                 {{ $class->enrollments_count }} student{{ $class->enrollments_count === 1 ? '' : 's' }}
                             </span>
                         </div>
+
+                        <a href="{{ route('teacher.classes.show', $class->class_id) }}" class="btn btn-outline-primary btn-sm w-100 font-bold">
+                            Open Class
+                        </a>
                     </div>
                 </div>
             </div>

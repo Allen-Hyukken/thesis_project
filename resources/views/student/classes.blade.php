@@ -28,10 +28,13 @@
                     <div class="card-body">
                         <h5 class="font-bold mb-1">{{ $class->class_name }}</h5>
                         <p class="text-muted mb-2" style="font-size:13px;">{{ $class->subject }}</p>
-                        <p class="mb-0" style="font-size:13px;">
+                        <p class="mb-3" style="font-size:13px;">
                             <i class="bi bi-person-video3 me-1"></i>
                             {{ $class->teacher->full_name ?? 'Unknown teacher' }}
                         </p>
+                        <a href="{{ route('student.classes.show', $class->class_id) }}" class="btn btn-outline-primary btn-sm w-100 font-bold">
+                            Open Class
+                        </a>
                     </div>
                 </div>
             </div>
