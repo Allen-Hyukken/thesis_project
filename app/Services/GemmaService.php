@@ -19,12 +19,6 @@ class GemmaService
         $this->baseUrl = (string) config('gemma.base_url');
     }
 
-    /**
-     * Step 1 of course creation: turn a topic + notes into a full outline
-     * (title, description, objectives, and a list of suggested modules).
-     * Nothing is saved — the teacher reviews/edits this before submitting
-     * the create-course form.
-     */
     public function generateOutline(string $topic, ?string $notes = null): array
     {
         $notes = $notes ?: 'None provided.';
@@ -52,10 +46,6 @@ PROMPT;
         return $this->callJson($prompt);
     }
 
-    /**
-     * Step 2, one topic at a time: write the full lesson content for a
-     * single module the teacher has already added to the course.
-     */
     public function generateLessonContent(string $courseTitle, string $moduleTitle, ?string $summary = null): array
     {
         $summary = $summary ?: 'No additional summary provided.';
@@ -74,10 +64,6 @@ PROMPT;
         return $this->callJson($prompt);
     }
 
-    /**
-     * Draft a single activity (assignment/discussion/project/reflection)
-     * tied to a topic in the course.
-     */
     public function generateActivity(string $courseTitle, string $moduleTitle): array
     {
         $prompt = <<<PROMPT
@@ -95,10 +81,6 @@ PROMPT;
         return $this->callJson($prompt);
     }
 
-    /**
-     * Draft questions for either a Quiz or an Exam (same shape, the
-     * caller decides which table to save them into).
-     */
     public function generateAssessment(string $courseTitle, string $moduleTitle, string $kind = 'quiz', int $numQuestions = 5): array
     {
         $label = $kind === 'exam' ? 'exam' : 'short quiz';
@@ -131,7 +113,88 @@ PROMPT;
         return $this->callJson($prompt);
     }
 
+    /**
+     * Course-scoped study assistant chat. The course material is injected
+     * directly into the prompt so the model has no knowledge to draw on
+     * beyond what's between the markers (FR.1.5.2).
+     */
+    public function askTutor(string $courseTitle, string $courseContent, array $history, string $question): string
+    {
+        $historyText = collect($history)
+            ->map(fn ($turn) => ($turn['role'] === 'user' ? 'Student' : 'Tutor') . ': ' . $turn['message'])
+            ->implode("\n");
+
+        $historyBlock = $historyText !== '' ? "Conversation so far:\n{$historyText}\n" : '';
+
+        $prompt = <<<PROMPT
+You are a study assistant for the college course "{$courseTitle}". You may ONLY use the material between the markers below to answer. If the student asks something not covered by this material, say plainly that it isn't covered in this course's materials yet and suggest they ask their teacher — do not answer from outside knowledge.
+
+=== COURSE MATERIAL ===
+{$courseContent}
+=== END COURSE MATERIAL ===
+
+{$historyBlock}
+Student: {$question}
+
+Reply directly and conversationally as the Tutor, in plain text (no markdown headers, no JSON).
+PROMPT;
+
+        return $this->callText($prompt);
+    }
+
+    /**
+     * Flashcard generation — also restricted to the course material.
+     */
+    public function generateFlashcards(string $courseTitle, string $courseContent, string $topic, int $count = 10): array
+    {
+        $prompt = <<<PROMPT
+You are creating study flashcards for the college course "{$courseTitle}", based ONLY on the material between the markers below. Do not introduce facts that aren't supported by this material.
+
+=== COURSE MATERIAL ===
+{$courseContent}
+=== END COURSE MATERIAL ===
+
+Requested topic/focus: {$topic}
+
+Respond with ONLY valid JSON (no markdown fences, no commentary) in exactly this shape:
+{
+  "flashcards": [
+    { "front": "string, a question or term", "back": "string, the answer or definition" }
+  ]
+}
+
+Create exactly {$count} flashcards covering the requested topic using only the material provided.
+PROMPT;
+
+        return $this->callJson($prompt);
+    }
+
     protected function callJson(string $prompt): array
+    {
+        $text = $this->generate($prompt, ['responseMimeType' => 'application/json', 'maxOutputTokens' => 8192]);
+
+        $cleaned = preg_replace('/^```(?:json)?\s*/i', '', $text);
+        $cleaned = preg_replace('/\s*```$/', '', $cleaned);
+
+        $decoded = json_decode($cleaned, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
+            Log::error('Gemma API returned invalid JSON', [
+                'raw_text'   => $text,
+                'json_error' => json_last_error_msg(),
+            ]);
+            throw new RuntimeException('Gemma API returned a response that was not valid JSON.');
+        }
+
+        return $decoded;
+    }
+
+    protected function callText(string $prompt): string
+    {
+        return $this->generate($prompt, ['maxOutputTokens' => 1024]);
+    }
+
+    protected function generate(string $prompt, array $generationConfig = []): string
     {
         if (empty($this->apiKey)) {
             throw new RuntimeException('GEMINI_API_KEY is not set. Add it to your .env file.');
@@ -143,14 +206,7 @@ PROMPT;
                 'contents' => [
                     ['parts' => [['text' => $prompt]]],
                 ],
-                'generationConfig' => [
-                    'responseMimeType' => 'application/json',
-                    'temperature'      => 0.6,
-                    // Without this, long drafts (e.g. an 8-module outline or
-                    // a 5-question quiz) can get cut off mid-JSON, which is
-                    // the #1 cause of "not valid JSON" failures.
-                    'maxOutputTokens'  => 8192,
-                ],
+                'generationConfig' => array_merge(['temperature' => 0.6], $generationConfig),
             ]
         );
 
@@ -174,23 +230,6 @@ PROMPT;
             throw new RuntimeException('Gemma API returned an empty response.');
         }
 
-        // Some models still wrap JSON in markdown fences even with
-        // responseMimeType set — strip them defensively before decoding.
-        $cleaned = trim($text);
-        $cleaned = preg_replace('/^```(?:json)?\s*/i', '', $cleaned);
-        $cleaned = preg_replace('/\s*```$/', '', $cleaned);
-
-        $decoded = json_decode($cleaned, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
-            Log::error('Gemma API returned invalid JSON', [
-                'finishReason' => $finishReason,
-                'raw_text'     => $text,
-                'json_error'   => json_last_error_msg(),
-            ]);
-            throw new RuntimeException('Gemma API returned a response that was not valid JSON.');
-        }
-
-        return $decoded;
+        return trim($text);
     }
 }

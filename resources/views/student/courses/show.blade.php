@@ -54,6 +54,17 @@
                 <i class="bi bi-file-text me-1"></i> Exams
             </button>
         </li>
+
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('student.classes.courses.ai-tutor', [$class->class_id, $course->course_id]) }}">
+                <i class="bi bi-robot me-1"></i> AI Tutor
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('student.classes.courses.flashcards', [$class->class_id, $course->course_id]) }}">
+                <i class="bi bi-collection me-1"></i> Flashcards
+            </a>
+        </li>
     </ul>
 
     <div class="tab-content">

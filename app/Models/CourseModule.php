@@ -65,4 +65,16 @@ class CourseModule extends Model
     {
         return $this->item_type === 'activity';
     }
+
+    /**
+     * Lessons safe to hand to the AI: teacher-typed, or AI-drafted and
+     * already approved. Excludes pending_review/rejected drafts.
+     */
+    public function scopeVisibleToStudents($query)
+    {
+        return $query->where('item_type', 'lesson')
+            ->where(function ($q) {
+                $q->whereNull('ai_status')->orWhere('ai_status', 'approved');
+            });
+    }
 }

@@ -81,4 +81,22 @@ class Course extends Model
             'class_id'
         )->withPivot('posted_at');
     }
+
+    /**
+     * Plain-text bundle of this course's teacher-approved lesson content —
+     * the only material the AI Study Assistant / Flashcard generator may
+     * draw from (FR.1.5.2).
+     */
+    public function studyContent(int $charLimit = 15000): string
+    {
+        $text = $this->modules()
+            ->visibleToStudents()
+            ->get()
+            ->map(fn ($m) => "## {$m->title}\n\n{$m->content}")
+            ->implode("\n\n---\n\n");
+
+        return mb_strlen($text) > $charLimit
+            ? mb_substr($text, 0, $charLimit) . "\n\n[...content truncated...]"
+            : $text;
+    }
 }

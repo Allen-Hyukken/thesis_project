@@ -16,6 +16,8 @@ use App\Http\Controllers\ActivitySubmissionController;
 use App\Http\Controllers\QuizAttemptController;
 use App\Http\Controllers\ExamAttemptController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AiTutorController;
+use App\Http\Controllers\FlashcardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -119,26 +121,29 @@ Route::group(['prefix' => 'student', 'as' => 'student.'], function () {
     Route::post('/classes/join', [ClassController::class, 'join'])->name('classes.join');
     Route::get('/classes/{class}', [ClassController::class, 'show'])->name('classes.show');
 
-    // Files drawer (shared download logic, same controller as teacher side)
     Route::get('/classes/{class}/materials/{material}/download', [ClassMaterialController::class, 'download'])->name('classes.materials.download');
 
-    // Taking a posted course
     Route::get('/classes/{class}/courses/{course}', [StudentCourseController::class, 'show'])->name('classes.courses.show');
 
-    // Activities — text/file submission
     Route::post('/activities/{module}/submit', [ActivitySubmissionController::class, 'store'])->name('activities.submit');
 
-    // Quizzes — one attempt
     Route::get('/quizzes/{quiz}/take', [QuizAttemptController::class, 'show'])->name('quizzes.take');
     Route::post('/quizzes/{quiz}/submit', [QuizAttemptController::class, 'submit'])->name('quizzes.submit');
 
-    // Exams — one attempt, kept separate from quizzes
     Route::get('/exams/{exam}/take', [ExamAttemptController::class, 'show'])->name('exams.take');
     Route::post('/exams/{exam}/submit', [ExamAttemptController::class, 'submit'])->name('exams.submit');
 
+    // AI Study Assistant (FR.1.5.1–1.5.2)
+    Route::get('/ai-tutor', [AiTutorController::class, 'pickCourse'])->name('ai-tutor');
+    Route::get('/classes/{class}/courses/{course}/ai-tutor', [AiTutorController::class, 'show'])->name('classes.courses.ai-tutor');
+    Route::post('/classes/{class}/courses/{course}/ai-tutor/ask', [AiTutorController::class, 'ask'])->name('classes.courses.ai-tutor.ask');
+
+    // AI Flashcards (FR.1.5.3–1.5.4)
+    Route::get('/flashcards', [FlashcardController::class, 'pickCourse'])->name('flashcards');
+    Route::get('/classes/{class}/courses/{course}/flashcards', [FlashcardController::class, 'index'])->name('classes.courses.flashcards');
+    Route::post('/classes/{class}/courses/{course}/flashcards/generate', [FlashcardController::class, 'generate'])->name('classes.courses.flashcards.generate');
+
     Route::get('/my-courses', function () { return "Student Courses"; })->name('courses');
-    Route::get('/ai-tutor', function () { return "AI Chat Assistant"; })->name('ai-tutor');
-    Route::get('/flashcards', function () { return "AI Generated Flashcards"; })->name('flashcards');
 });
 
 
