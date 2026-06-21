@@ -10,9 +10,6 @@
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <h3 class="mb-1">{{ $course->title }}</h3>
-            <span class="badge {{ $course->visibility === 'public' ? 'bg-info' : 'bg-secondary' }}">
-                {{ ucfirst($course->visibility) }}
-            </span>
             <span class="badge {{ $course->status === 'published' ? 'bg-success' : 'bg-light text-dark border' }}">
                 {{ ucfirst($course->status) }}
             </span>

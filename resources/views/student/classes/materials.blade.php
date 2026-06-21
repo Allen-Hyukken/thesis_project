@@ -24,7 +24,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
                     <div class="d-flex align-items-center">
                         <div class="avatar avatar-md me-3">
-                            <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded bg-light text-primary fs-5">
+                            <span class="avatar-content d-flex align-items-center justify-content-center rounded bg-light text-primary fs-5">
                                 <i class="bi bi-file-earmark-text"></i>
                             </span>
                         </div>

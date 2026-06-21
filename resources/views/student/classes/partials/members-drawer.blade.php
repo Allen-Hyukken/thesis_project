@@ -6,7 +6,7 @@
     <div class="offcanvas-body">
         <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
             <div class="avatar avatar-sm me-2">
-                <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-danger text-white fw-bold" style="font-size:12px;">
+                <span class="avatar-content d-flex align-items-center justify-content-center rounded-circle bg-danger text-white fw-bold" style="font-size:12px;">
                     {{ strtoupper(substr($class->teacher->full_name ?? '?', 0, 1)) }}
                 </span>
             </div>
@@ -19,7 +19,7 @@
         @forelse ($members as $enrollment)
             <div class="d-flex align-items-center mb-3">
                 <div class="avatar avatar-sm me-2">
-                    <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-primary text-white fw-bold" style="font-size:12px;">
+                    <span class="avatar-content d-flex align-items-center justify-content-center rounded-circle bg-primary text-white fw-bold" style="font-size:12px;">
                         {{ strtoupper(substr($enrollment->student->full_name ?? '?', 0, 1)) }}
                     </span>
                 </div>

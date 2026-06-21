@@ -19,45 +19,59 @@
             <h4>Members</h4>
             <span class="badge bg-secondary">{{ $members->count() + 1 }}</span>
         </div>
-        <div class="card-body">
-
-            <a href="{{ route('profile.view', $class->teacher->user_id) }}" class="d-flex align-items-center text-decoration-none text-reset mb-3 pb-3 border-bottom">
-                <div class="avatar avatar-md me-3">
-                    @if ($class->teacher->avatar)
-                        <img src="{{ asset('storage/' . $class->teacher->avatar) }}" alt="Avatar"
-                             class="rounded-circle w-100 h-100" style="object-fit:cover;">
-                    @else
-                        <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-danger text-white fw-bold">
-                            {{ strtoupper(substr($class->teacher->full_name ?? '?', 0, 1)) }}
-                        </span>
-                    @endif
-                </div>
-                <div>
-                    <p class="font-bold mb-0">{{ $class->teacher->full_name }}</p>
-                    <p class="text-muted mb-0" style="font-size:12px;">Teacher</p>
-                </div>
-            </a>
-
-            @forelse ($members as $enrollment)
-                <a href="{{ route('profile.view', $enrollment->student->user_id) }}" class="d-flex align-items-center text-decoration-none text-reset mb-3">
-                    <div class="avatar avatar-md me-3">
-                        @if ($enrollment->student->avatar)
-                            <img src="{{ asset('storage/' . $enrollment->student->avatar) }}" alt="Avatar"
-                                 class="rounded-circle w-100 h-100" style="object-fit:cover;">
-                        @else
-                            <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-primary text-white fw-bold">
-                                {{ strtoupper(substr($enrollment->student->full_name ?? '?', 0, 1)) }}
-                            </span>
-                        @endif
-                    </div>
-                    <div>
-                        <p class="font-bold mb-0">{{ $enrollment->student->full_name }}</p>
-                        <p class="text-muted mb-0" style="font-size:12px;">Student</p>
-                    </div>
-                </a>
-            @empty
-                <p class="text-muted mb-0">No other students have joined yet.</p>
-            @endforelse
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width:65%;">Name</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <a href="{{ route('profile.view', $class->teacher->user_id) }}" class="d-flex align-items-center text-decoration-none text-reset">
+                                    <div class="avatar avatar-sm me-3">
+                                        @if ($class->teacher->avatar)
+                                            <img src="{{ asset('storage/' . $class->teacher->avatar) }}" alt="Avatar" class="avatar-content rounded-circle" style="object-fit:cover;">
+                                        @else
+                                            <span class="avatar-content d-flex align-items-center justify-content-center rounded-circle bg-danger text-white fw-bold">
+                                                {{ strtoupper(substr($class->teacher->full_name ?? '?', 0, 1)) }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <span class="font-bold">{{ $class->teacher->full_name }}</span>
+                                </a>
+                            </td>
+                            <td><span class="badge bg-light-primary">Teacher</span></td>
+                        </tr>
+                        @forelse ($members as $enrollment)
+                            <tr>
+                                <td>
+                                    <a href="{{ route('profile.view', $enrollment->student->user_id) }}" class="d-flex align-items-center text-decoration-none text-reset">
+                                        <div class="avatar avatar-sm me-3">
+                                            @if ($enrollment->student->avatar)
+                                                <img src="{{ asset('storage/' . $enrollment->student->avatar) }}" alt="Avatar" class="avatar-content rounded-circle" style="object-fit:cover;">
+                                            @else
+                                                <span class="avatar-content d-flex align-items-center justify-content-center rounded-circle bg-primary text-white fw-bold">
+                                                    {{ strtoupper(substr($enrollment->student->full_name ?? '?', 0, 1)) }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <span class="font-bold">{{ $enrollment->student->full_name }}</span>
+                                    </a>
+                                </td>
+                                <td><span class="badge bg-light-secondary">Student</span></td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2" class="text-muted">No other students have joined yet.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

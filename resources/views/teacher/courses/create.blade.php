@@ -71,30 +71,18 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label font-bold d-block">Visibility</label>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="visibility" id="vis-private" value="private" checked>
-                                    <label class="form-check-label" for="vis-private">Private</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="visibility" id="vis-public" value="public">
-                                    <label class="form-check-label" for="vis-public">Public</label>
-                                </div>
-                                <p class="text-muted mb-0" style="font-size:12px;">
-                                    Private: only students in the class below can see it. Public: any registered user can browse and enroll.
-                                </p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label font-bold">Link to a Class (optional)</label>
+                            <div class="col-12 mb-3">
+                                <input type="hidden" name="visibility" value="private">
+                                <label class="form-label font-bold">Link to a Class</label>
                                 <select name="class_id" class="form-control">
-                                    <option value="">No class — public-only course</option>
+                                    <option value="">No class — unassigned course</option>
                                     @foreach ($classes as $class)
                                         <option value="{{ $class->class_id }}">{{ $class->class_name }} ({{ $class->class_code }})</option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
+
                     </div>
                 </div>
 

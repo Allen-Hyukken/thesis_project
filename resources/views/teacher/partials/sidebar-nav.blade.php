@@ -23,19 +23,6 @@
     </a>
 </li>
 
-<li class="sidebar-item {{ request()->routeIs('teacher.materials') ? 'active' : '' }}">
-    <a href="{{ route('teacher.materials') }}" class="sidebar-link">
-        <i class="bi bi-folder-fill"></i>
-        <span>Learning Materials</span>
-    </a>
-</li>
-
-<li class="sidebar-item {{ request()->routeIs('teacher.students') ? 'active' : '' }}">
-    <a href="{{ route('teacher.students') }}" class="sidebar-link">
-        <i class="bi bi-person-badge-fill"></i>
-        <span>Students</span>
-    </a>
-</li>
 
 <li class="sidebar-title">AI Tools</li>
 

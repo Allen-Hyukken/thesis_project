@@ -16,13 +16,6 @@
     </a>
 </li>
 
-<li class="sidebar-item {{ request()->routeIs('student.courses') ? 'active' : '' }}">
-    <a href="{{ route('student.courses') }}" class="sidebar-link">
-        <i class="bi bi-journal-text"></i>
-        <span>Browse Courses</span>
-    </a>
-</li>
-
 <li class="sidebar-title">AI Study Tools</li>
 
 <li class="sidebar-item {{ request()->routeIs('student.flashcards') ? 'active' : '' }}">

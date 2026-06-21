@@ -41,7 +41,6 @@ class CourseController extends Controller
             'title'                  => 'required|string|max:200',
             'description'            => 'nullable|string',
             'learning_objectives'    => 'nullable|string',
-            'visibility'             => 'required|in:public,private',
             'class_id'               => 'nullable|integer|exists:classes,class_id',
             'modules'                => 'nullable|array',
             'modules.*.title'        => 'required_with:modules|string|max:200',
@@ -65,7 +64,7 @@ class CourseController extends Controller
             'title'               => $validated['title'],
             'description'         => $validated['description'] ?? null,
             'learning_objectives' => $validated['learning_objectives'] ?? null,
-            'visibility'          => $validated['visibility'],
+            'visibility'          => 'private',
             'status'              => 'draft',
             'ai_generated'        => ! empty($validated['modules']) && collect($validated['modules'])->contains(fn ($m) => ! empty($m['ai_generated'])),
         ]);

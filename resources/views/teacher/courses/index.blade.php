@@ -36,9 +36,6 @@
                         </div>
 
                         <div class="mb-2">
-                            <span class="badge {{ $course->visibility === 'public' ? 'bg-info' : 'bg-secondary' }}">
-                                {{ ucfirst($course->visibility) }}
-                            </span>
                             <span class="badge {{ $course->status === 'published' ? 'bg-success' : 'bg-light text-dark border' }}">
                                 {{ ucfirst($course->status) }}
                             </span>

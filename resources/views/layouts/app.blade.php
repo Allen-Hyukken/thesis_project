@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{{ asset('assets/vendors/iconly/bold.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/theme.css') }}">
 
     @stack('styles')
 </head>

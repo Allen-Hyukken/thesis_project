@@ -98,7 +98,7 @@
                             @forelse ($classes as $class)
                                 <div class="d-flex align-items-center mb-4">
                                     <div class="avatar avatar-lg me-3">
-                                        <div class="d-flex align-items-center justify-content-center w-100 h-100 rounded bg-light">
+                                        <div class="avatar-content d-flex align-items-center justify-content-center rounded bg-light">
                                             <i class="bi bi-journal-code fs-4" style="color:#435ebe;"></i>
                                         </div>
                                     </div>
@@ -136,9 +136,9 @@
                         <a href="{{ route('profile.show') }}" class="avatar avatar-xl me-3 text-decoration-none">
                             @if (auth()->user()->avatar)
                                 <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="Avatar"
-                                     class="rounded-circle w-100 h-100" style="object-fit:cover;">
+                                     class="rounded-circle" style="object-fit:cover;">
                             @else
-                                <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-danger text-white fw-bold fs-4">
+                                <span class="avatar-content d-flex align-items-center justify-content-center rounded-circle bg-danger text-white fw-bold fs-4">
                                     {{ strtoupper(substr(auth()->user()->full_name ?? 'S', 0, 1)) }}
                                 </span>
                             @endif
@@ -169,7 +169,7 @@
                         <a href="{{ $task['link'] ?? ($task['class_id'] ? route('student.classes.show', $task['class_id']) : '#') }}"
                            class="recent-message d-flex px-4 py-3 text-decoration-none text-reset">
                             <div class="avatar avatar-md">
-                                <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle"
+                                <span class="avatar-content d-flex align-items-center justify-content-center rounded-circle"
                                       style="background:#eef1fb;color:#435ebe;">
                                     <i class="bi {{ $task['icon'] }}"></i>
                                 </span>
