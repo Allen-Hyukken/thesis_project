@@ -34,14 +34,14 @@
                     <div class="card-body">
 
                         <div class="mb-4 d-flex align-items-center">
-                            <div class="me-3" style="width:80px;height:80px;">
+                            <div class="me-3" style="width:80px;height:80px;position:relative;">
                                 <img id="avatar-preview"
                                      src="{{ $user->avatar ? asset('storage/' . $user->avatar) : '' }}"
-                                     class="rounded-circle w-100 h-100"
-                                     style="object-fit:cover;{{ $user->avatar ? '' : 'display:none;' }}">
+                                     class="rounded-circle"
+                                     style="position:absolute;top:0;left:0;width:80px;height:80px;object-fit:cover;{{ $user->avatar ? '' : 'display:none;' }}">
                                 <span id="avatar-placeholder"
-                                      class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-danger text-white fw-bold"
-                                      style="font-size:28px;{{ $user->avatar ? 'display:none;' : '' }}">
+                                      class="d-flex align-items-center justify-content-center rounded-circle bg-danger text-white fw-bold"
+                                      style="position:absolute;top:0;left:0;width:80px;height:80px;font-size:28px;{{ $user->avatar ? 'display:none;' : '' }}">
                                     {{ strtoupper(substr($user->full_name, 0, 1)) }}
                                 </span>
                             </div>
@@ -50,7 +50,7 @@
                                     <i class="bi bi-camera me-1"></i> Change Photo
                                 </label>
                                 <input type="file" name="avatar" id="avatar" accept="image/png,image/jpeg" class="d-none" onchange="previewAvatar(this)">
-                                <p class="text-muted mb-0" style="font-size:12px;">JPG or PNG, max 2MB.</p>
+                                <p class="text-muted mb-0" style="font-size:12px;">JPG or PNG, max 5MB.</p>
                             </div>
                         </div>
 
