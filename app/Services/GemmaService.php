@@ -52,16 +52,29 @@ PROMPT;
 
         $prompt = <<<PROMPT
 You are writing lesson content for a college course titled "{$courseTitle}".
-Write the full lesson content for the topic: "{$moduleTitle}".
-Context/summary for this topic: {$summary}
 
-Respond with ONLY valid JSON (no markdown fences) in exactly this shape:
-{ "content": "string, the full lesson content in plain text with clear paragraph breaks, ready for students to read directly" }
+Topic: "{$moduleTitle}"
 
-Aim for roughly 400-700 words: thorough enough for one class session, well-organized, free of filler.
+Context:
+{$summary}
+
+Write a complete lesson.
+
+Requirements:
+- 400 to 700 words
+- Clear paragraphs
+- Suitable for college students
+- Well organized
+- No JSON
+- No markdown code fences
+- Return only the lesson content
 PROMPT;
 
-        return $this->callJson($prompt);
+        $content = $this->callText($prompt);
+
+        return [
+            'content' => $content
+        ];
     }
 
     public function generateActivity(string $courseTitle, string $moduleTitle): array
@@ -170,70 +183,65 @@ PROMPT;
 
     protected function callJson(string $prompt): array
     {
-        $text = $this->generate($prompt, [
-            'responseMimeType' => 'application/json',
-            'maxOutputTokens'  => 8192,
-        ]);
+        $strictPrompt = <<<PROMPT
+You are a JSON API.
 
-        // Strip markdown fences defensively
-        $cleaned = trim(preg_replace('/^```(?:json)?\s*/i', '', $text));
-        $cleaned = trim(preg_replace('/\s*```$/', '', $cleaned));
+CRITICAL RULES:
+- Return ONLY valid JSON.
+- No explanations.
+- No reasoning.
+- No planning.
+- No self-correction.
+- No markdown.
+- No code fences.
+- No text before the JSON.
+- No text after the JSON.
+- First character must be {
+- Last character must be }
 
-        // Try direct decode first — ideal case, no reasoning leaked
-        $decoded = json_decode($cleaned, true);
-        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-            return $decoded;
-        }
+{$prompt}
+PROMPT;
 
-        // Gemma leaks chain-of-thought reasoning BEFORE the JSON, and the
-        // reasoning itself often contains { } examples that fool a simple
-        // strpos-from-the-left approach. Fix: collect every { position and
-        // try each one as a potential JSON start, rightmost first — the
-        // actual JSON object is always the LAST { ... } block in the output.
-        $lastClose = strrpos($cleaned, '}');
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
 
-        if ($lastClose !== false) {
-            $openPositions = [];
-            $offset = 0;
-            while (($pos = strpos($cleaned, '{', $offset)) !== false) {
-                $openPositions[] = $pos;
-                $offset = $pos + 1;
+            $text = $this->generate($strictPrompt, [
+                'responseMimeType' => 'application/json',
+                'temperature' => 0,
+                'topP' => 0.1,
+                'topK' => 1,
+                'maxOutputTokens' => 4096,
+            ]);
+
+            $cleaned = trim($text);
+
+            $decoded = json_decode($cleaned, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
             }
 
-            foreach (array_reverse($openPositions) as $openPos) {
-                if ($openPos >= $lastClose) {
-                    continue;
-                }
-                $candidate = substr($cleaned, $openPos, $lastClose - $openPos + 1);
-                $decoded = json_decode($candidate, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    return $decoded;
-                }
-            }
+            Log::warning('Gemma JSON attempt failed', [
+                'attempt' => $attempt,
+                'error' => json_last_error_msg(),
+                'response' => substr($cleaned, 0, 2000),
+            ]);
         }
 
-        Log::error('Gemma API returned invalid JSON', [
-            'raw_text'   => $text,
-            'json_error' => json_last_error_msg(),
+        Log::error('Gemma failed to return valid JSON after 3 attempts', [
+            'prompt' => substr($prompt, 0, 1000),
         ]);
-        throw new RuntimeException('Gemma API returned a response that was not valid JSON.');
+
+        throw new RuntimeException(
+            'Gemma API returned a response that was not valid JSON.'
+        );
     }
 
     protected function callText(string $prompt): string
     {
-        $text = $this->generate($prompt, [
-            'maxOutputTokens' => 1024,
-            'temperature'     => 0.3,
+        return $this->generate($prompt, [
+            'maxOutputTokens' => 2048,
+            'temperature' => 0.3,
         ]);
-
-        // Gemma leaks chain-of-thought reasoning as bullet points before the
-        // actual answer. The real answer is always the last non-empty paragraph.
-        $paragraphs = array_filter(
-            array_map('trim', explode("\n\n", $text)),
-            fn ($p) => $p !== ''
-        );
-
-        return end($paragraphs) ?: $text;
     }
 
     protected function generate(string $prompt, array $generationConfig = []): string
@@ -242,19 +250,17 @@ PROMPT;
             throw new RuntimeException('GEMINI_API_KEY is not set. Add it to your .env file.');
         }
 
-        // Allow up to 2 minutes for AI calls — Gemma can be slow on large prompts
-        set_time_limit(120);
+        set_time_limit(300);
 
-        $response = Http::timeout(90)->post(
+        $response = Http::timeout(300)->post(
             "{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}",
             [
                 'contents' => [
                     ['parts' => [['text' => $prompt]]],
                 ],
-                // Note: thinkingConfig/thinkingBudget intentionally excluded —
-                // that is Gemini 2.5+ only and breaks Gemma model calls.
                 'generationConfig' => array_merge([
                     'temperature' => 0.6,
+                    'maxOutputTokens' => 4096, // 👈 move default here (important)
                 ], $generationConfig),
             ]
         );
@@ -268,17 +274,42 @@ PROMPT;
         }
 
         $json = $response->json();
-        $text = data_get($json, 'candidates.0.content.parts.0.text');
+
+        $parts = data_get($json, 'candidates.0.content.parts', []);
+
+        $text = '';
+
+        foreach ($parts as $part) {
+            if (($part['thought'] ?? false) === true) {
+                continue;
+            }
+
+            if (!empty($part['text'])) {
+                $text .= $part['text'];
+            }
+        }
+
+        $text = trim($text);
+
         $finishReason = data_get($json, 'candidates.0.finishReason');
 
+        // ✅ FIX #1: DO NOT treat MAX_TOKENS as failure
         if (! $text) {
-            Log::error('Gemma API returned an empty response', [
+            Log::error('Gemma API returned empty text (true failure)', [
                 'finishReason' => $finishReason,
                 'raw'          => $json,
             ]);
+
             throw new RuntimeException('Gemma API returned an empty response.');
         }
 
-        return trim($text);
+        // ⚠️ FIX #2: log truncation but still return text
+        if ($finishReason === 'MAX_TOKENS') {
+            Log::warning('Gemma response truncated (MAX_TOKENS)', [
+                'length' => strlen($text),
+            ]);
+        }
+
+        return $text;
     }
 }
