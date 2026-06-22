@@ -51,23 +51,37 @@ PROMPT;
         $summary = $summary ?: 'No additional summary provided.';
 
         $prompt = <<<PROMPT
-You are writing lesson content for a college course titled "{$courseTitle}".
+You are writing college-level STUDY REVIEWER NOTES.
 
-Topic: "{$moduleTitle}"
+Course: {$courseTitle}
+Topic: {$moduleTitle}
 
 Context:
 {$summary}
 
-Write a complete lesson.
+Write a complete reviewer lesson for students.
 
-Requirements:
-- 400 to 700 words
-- Clear paragraphs
-- Suitable for college students
-- Well organized
+REQUIREMENTS:
+- 600–800 words
+- Must be clear, detailed, and educational
+- Must help students understand AND prepare for exams
+- Must include explanations + examples
+
+STRUCTURE (use plain sections, no markdown):
+1. Definition of the topic
+2. Importance / real-world use
+3. Key concepts explained clearly
+4. Step-by-step explanation of how it works
+5. 1–2 practical examples
+6. Common mistakes students make
+7. Short exam focus section (what teachers usually ask)
+
+STYLE:
+- Like lecture notes from a professor
+- Easy to understand but complete
+- No self-correction, no meta commentary
 - No JSON
 - No markdown code fences
-- Return only the lesson content
 PROMPT;
 
         $content = $this->callText($prompt);
@@ -305,9 +319,7 @@ PROMPT;
 
         // ⚠️ FIX #2: log truncation but still return text
         if ($finishReason === 'MAX_TOKENS') {
-            Log::warning('Gemma response truncated (MAX_TOKENS)', [
-                'length' => strlen($text),
-            ]);
+            $prompt .= "\nContinue from where you stopped. Do not repeat.";
         }
 
         return $text;
