@@ -253,7 +253,7 @@ PROMPT;
     protected function callText(string $prompt): string
     {
         return $this->generate($prompt, [
-            'maxOutputTokens' => 2048,
+            'maxOutputTokens' => 8192,
             'temperature' => 0.3,
         ]);
     }
@@ -317,10 +317,6 @@ PROMPT;
             throw new RuntimeException('Gemma API returned an empty response.');
         }
 
-        // ⚠️ FIX #2: log truncation but still return text
-        if ($finishReason === 'MAX_TOKENS') {
-            $prompt .= "\nContinue from where you stopped. Do not repeat.";
-        }
 
         return $text;
     }
