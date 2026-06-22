@@ -91,10 +91,16 @@ PROMPT;
         ];
     }
 
-    public function generateActivity(string $courseTitle, string $moduleTitle): array
+    public function generateActivity(string $courseTitle, string $moduleTitle, string $courseContent = ''): array
     {
+        $contentBlock = $courseContent !== '' && $courseContent !== 'No lesson content has been added to this course yet.'
+            ? "=== COURSE LESSON CONTENT ===\n{$courseContent}\n=== END COURSE LESSON CONTENT ===\n\n"
+            : '';
+
         $prompt = <<<PROMPT
 You are designing a learning activity for the topic "{$moduleTitle}" in the course "{$courseTitle}".
+
+{$contentBlock}IMPORTANT: Base this activity ONLY on the lesson content provided above. Do not introduce concepts, topics, or facts that are not present in the lessons. If no lesson content is provided, base it strictly on the topic title.
 
 Respond with ONLY valid JSON (no markdown fences) in exactly this shape:
 {
@@ -108,12 +114,18 @@ PROMPT;
         return $this->callJson($prompt);
     }
 
-    public function generateAssessment(string $courseTitle, string $moduleTitle, string $kind = 'quiz', int $numQuestions = 5): array
+    public function generateAssessment(string $courseTitle, string $moduleTitle, string $kind = 'quiz', int $numQuestions = 5, string $courseContent = ''): array
     {
         $label = $kind === 'exam' ? 'exam' : 'short quiz';
 
+        $contentBlock = $courseContent !== '' && $courseContent !== 'No lesson content has been added to this course yet.'
+            ? "=== COURSE LESSON CONTENT ===\n{$courseContent}\n=== END COURSE LESSON CONTENT ===\n\n"
+            : '';
+
         $prompt = <<<PROMPT
 You are writing a {$label} for the topic "{$moduleTitle}" in the course "{$courseTitle}".
+
+{$contentBlock}IMPORTANT: Every question must be based ONLY on the lesson content provided above. Do not test students on concepts, facts, or topics that are not explicitly covered in the lessons.
 
 Create exactly {$numQuestions} questions, mostly multiple_choice with a few open_ended.
 

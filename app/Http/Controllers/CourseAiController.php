@@ -9,24 +9,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-/**
- * Every method here is a pure "ask Gemma, return a draft" endpoint.
- * Nothing is written to the database — the teacher reviews/edits the
- * draft in the UI and saves it through the normal store endpoints
- * (ModuleController, QuizController, ExamController), which work
- * identically whether the content came from AI or was typed by hand.
- */
 class CourseAiController extends Controller
 {
     use AuthorizesCourseOwner;
 
-    public function __construct(private GemmaService $gemma)
-    {
-    }
+    public function __construct(private GemmaService $gemma) {}
 
-    /**
-     * Used on the "Create Course" page, before the course exists.
-     */
     public function outline(Request $request)
     {
         $request->validate([
@@ -36,11 +24,9 @@ class CourseAiController extends Controller
 
         try {
             $data = $this->gemma->generateOutline($request->topic, $request->notes);
-
             return response()->json(['success' => true, 'data' => $data]);
         } catch (Throwable $e) {
             Log::warning('Gemma outline generation failed: ' . $e->getMessage());
-
             return response()->json([
                 'success' => false,
                 'message' => 'AI generation failed. You can try again or fill the form in manually.',
@@ -48,9 +34,6 @@ class CourseAiController extends Controller
         }
     }
 
-    /**
-     * Full lesson content for one existing topic.
-     */
     public function lessonContent(Request $request, Course $course)
     {
         $this->authorizeOwner($course);
@@ -62,11 +45,9 @@ class CourseAiController extends Controller
 
         try {
             $data = $this->gemma->generateLessonContent($course->title, $request->title, $request->summary);
-
             return response()->json(['success' => true, 'data' => $data]);
         } catch (Throwable $e) {
             Log::warning('Gemma lesson generation failed: ' . $e->getMessage());
-
             return response()->json([
                 'success' => false,
                 'message' => 'AI generation failed. Please try again or write the content in manually.',
@@ -74,9 +55,6 @@ class CourseAiController extends Controller
         }
     }
 
-    /**
-     * A single activity draft.
-     */
     public function activity(Request $request, Course $course)
     {
         $this->authorizeOwner($course);
@@ -85,13 +63,14 @@ class CourseAiController extends Controller
             'topic' => 'required|string|max:200',
         ]);
 
-        try {
-            $data = $this->gemma->generateActivity($course->title, $request->topic);
+        // Pass the actual lesson content so the AI stays on-topic
+        $courseContent = $this->buildCourseContent($course);
 
+        try {
+            $data = $this->gemma->generateActivity($course->title, $request->topic, $courseContent);
             return response()->json(['success' => true, 'data' => $data]);
         } catch (Throwable $e) {
             Log::warning('Gemma activity generation failed: ' . $e->getMessage());
-
             return response()->json([
                 'success' => false,
                 'message' => 'AI generation failed. Please try again or fill the activity in manually.',
@@ -99,9 +78,6 @@ class CourseAiController extends Controller
         }
     }
 
-    /**
-     * Quiz or exam question drafts — same generator, different label.
-     */
     public function assessment(Request $request, Course $course)
     {
         $this->authorizeOwner($course);
@@ -112,22 +88,49 @@ class CourseAiController extends Controller
             'num_questions' => 'nullable|integer|min:3|max:15',
         ]);
 
+        // Pass the actual lesson content so questions are grounded in what was taught
+        $courseContent = $this->buildCourseContent($course);
+
         try {
             $data = $this->gemma->generateAssessment(
                 $course->title,
                 $request->topic,
                 $request->kind,
-                $request->integer('num_questions', 5)
+                $request->integer('num_questions', 5),
+                $courseContent
             );
-
             return response()->json(['success' => true, 'data' => $data]);
         } catch (Throwable $e) {
             Log::warning('Gemma assessment generation failed: ' . $e->getMessage());
-
             return response()->json([
                 'success' => false,
                 'message' => 'AI generation failed. Please try again or build the questions manually.',
             ], 422);
         }
+    }
+
+    /**
+     * Builds a plain-text bundle of all lessons in this course.
+     * Used to ground activity and assessment generation strictly
+     * in what the teacher has actually taught.
+     */
+    private function buildCourseContent(Course $course, int $charLimit = 12000): string
+    {
+        $lessons = $course->modules()
+            ->where('item_type', 'lesson')
+            ->orderBy('order_index')
+            ->get();
+
+        if ($lessons->isEmpty()) {
+            return 'No lesson content has been added to this course yet.';
+        }
+
+        $text = $lessons
+            ->map(fn ($m) => "## {$m->title}\n\n{$m->content}")
+            ->implode("\n\n---\n\n");
+
+        return mb_strlen($text) > $charLimit
+            ? mb_substr($text, 0, $charLimit) . "\n\n[...content truncated...]"
+            : $text;
     }
 }
