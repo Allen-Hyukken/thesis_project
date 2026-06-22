@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+        (function () {
+            var t = localStorage.getItem('tup-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
     <title>@yield('title', 'TUP LMS') — TUP AI Learning</title>
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -46,6 +52,16 @@
             <div class="sidebar-menu">
                 <ul class="menu">
                     @yield('sidebar-nav')
+                    <li class="sidebar-item theme-toggle-item">
+                        <a href="#" id="theme-toggle-btn" class="sidebar-link">
+                            <i class="bi bi-moon-stars-fill" id="theme-toggle-icon"></i>
+                            <span>Dark Mode</span>
+                            <label class="theme-switch ms-auto">
+                                <input type="checkbox" id="theme-toggle-checkbox">
+                                <span class="theme-switch-slider"></span>
+                            </label>
+                        </a>
+                    </li>
                 </ul>
             </div>
 
@@ -90,6 +106,37 @@
 <script src="{{ asset('assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script>
 <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('assets/js/main.js') }}"></script>
+<script>
+    (function () {
+        const checkbox = document.getElementById('theme-toggle-checkbox');
+        const icon = document.getElementById('theme-toggle-icon');
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            if (checkbox) checkbox.checked = theme === 'dark';
+            if (icon) {
+                icon.classList.toggle('bi-moon-stars-fill', theme !== 'dark');
+                icon.classList.toggle('bi-sun-fill', theme === 'dark');
+            }
+        }
+
+        applyTheme(localStorage.getItem('tup-theme') || 'light');
+
+        document.getElementById('theme-toggle-btn').addEventListener('click', function (e) {
+            e.preventDefault();
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change'));
+        });
+
+        if (checkbox) {
+            checkbox.addEventListener('change', function () {
+                const theme = checkbox.checked ? 'dark' : 'light';
+                localStorage.setItem('tup-theme', theme);
+                applyTheme(theme);
+            });
+        }
+    })();
+</script>
 
 @stack('scripts')
 </body>

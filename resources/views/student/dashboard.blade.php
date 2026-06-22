@@ -19,14 +19,12 @@
                 <div class="col-6 col-lg-3 col-md-6">
                     <div class="card">
                         <div class="card-body px-3 py-4-5">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="stats-icon blue">
-                                        <i class="bi bi-mortarboard-fill"></i>
-                                    </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="stats-icon blue flex-shrink-0">
+                                    <i class="bi bi-mortarboard-fill"></i>
                                 </div>
-                                <div class="col-md-8">
-                                    <h6 class="text-muted font-semibold">Enrolled Classes</h6>
+                                <div class="flex-grow-1 min-width-0">
+                                    <h6 class="text-muted font-semibold stat-label mb-1">Enrolled Classes</h6>
                                     <h6 class="font-extrabold mb-0">{{ $enrolledClassesCount }}</h6>
                                 </div>
                             </div>
@@ -36,14 +34,12 @@
                 <div class="col-6 col-lg-3 col-md-6">
                     <div class="card">
                         <div class="card-body px-3 py-4-5">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="stats-icon green">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                    </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="stats-icon green flex-shrink-0">
+                                    <i class="bi bi-check-circle-fill"></i>
                                 </div>
-                                <div class="col-md-8">
-                                    <h6 class="text-muted font-semibold">Avg. Score</h6>
+                                <div class="flex-grow-1 min-width-0">
+                                    <h6 class="text-muted font-semibold stat-label mb-1">Avg. Score</h6>
                                     <h6 class="font-extrabold mb-0">{{ $avgScore !== null ? $avgScore . '%' : '—' }}</h6>
                                 </div>
                             </div>
@@ -53,14 +49,12 @@
                 <div class="col-6 col-lg-3 col-md-6">
                     <div class="card">
                         <div class="card-body px-3 py-4-5">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="stats-icon purple">
-                                        <i class="bi bi-list-task"></i>
-                                    </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="stats-icon purple flex-shrink-0">
+                                    <i class="bi bi-list-task"></i>
                                 </div>
-                                <div class="col-md-8">
-                                    <h6 class="text-muted font-semibold">Pending Tasks</h6>
+                                <div class="flex-grow-1 min-width-0">
+                                    <h6 class="text-muted font-semibold stat-label mb-1">Pending Tasks</h6>
                                     <h6 class="font-extrabold mb-0">{{ $pendingCount }}</h6>
                                 </div>
                             </div>
@@ -70,14 +64,12 @@
                 <div class="col-6 col-lg-3 col-md-6">
                     <div class="card">
                         <div class="card-body px-3 py-4-5">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="stats-icon red">
-                                        <i class="bi bi-trophy-fill"></i>
-                                    </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="stats-icon red flex-shrink-0">
+                                    <i class="bi bi-trophy-fill"></i>
                                 </div>
-                                <div class="col-md-8">
-                                    <h6 class="text-muted font-semibold">Completed</h6>
+                                <div class="flex-grow-1 min-width-0">
+                                    <h6 class="text-muted font-semibold stat-label mb-1">Completed</h6>
                                     <h6 class="font-extrabold mb-0">{{ $completedCount }}</h6>
                                 </div>
                             </div>

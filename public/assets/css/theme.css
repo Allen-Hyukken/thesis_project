@@ -291,3 +291,100 @@ footer .footer{
   font-size: .85rem;
   padding-top: 1.5rem;
 }
+
+/* ============================================================
+   13. Dark mode
+   ============================================================ */
+[data-theme="dark"]{
+    --surface:         #14171f;
+    --surface-card:    #1c2030;
+    --surface-border:  #2b3047;
+    --ink-900: #f1f3fa;
+    --ink-700: #cfd3e3;
+    --ink-500: #9aa0b8;
+    --ink-300: #5d6380;
+
+    --tup-primary-light: rgba(67,94,190,.18);
+    --tup-accent-light:  rgba(192,57,43,.18);
+    --tup-success-light: rgba(22,163,74,.18);
+    --tup-warning-light: rgba(217,119,6,.18);
+    --tup-danger-light:  rgba(220,38,38,.18);
+    --tup-info-light:    rgba(14,165,233,.18);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select{
+    background-color: var(--surface-card) !important;
+    color: var(--ink-700) !important;
+}
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus{
+    background-color: var(--surface-card) !important;
+}
+[data-theme="dark"] ::placeholder{ color: var(--ink-500) !important; }
+[data-theme="dark"] .btn-light{
+    background-color: var(--surface-border) !important;
+    color: var(--ink-700) !important;
+}
+[data-theme="dark"] .burger-btn{
+    background: var(--surface-card);
+    border-color: var(--surface-border);
+}
+[data-theme="dark"] *::-webkit-scrollbar-thumb{ background: #353b54; }
+[data-theme="dark"] *::-webkit-scrollbar-thumb:hover{ background: #454c6e; }
+
+/* ---------- Theme toggle switch ---------- */
+.sidebar-item.theme-toggle-item .sidebar-link{
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+}
+.theme-switch{
+    position: relative;
+    width: 38px;
+    height: 22px;
+    flex-shrink: 0;
+    display: inline-block;
+}
+.theme-switch input{
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+.theme-switch-slider{
+    position: absolute;
+    inset: 0;
+    background-color: var(--surface-border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color .2s ease;
+}
+.theme-switch-slider::before{
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 3px;
+    top: 3px;
+    background-color: #fff;
+    border-radius: 50%;
+    transition: transform .2s ease;
+    box-shadow: var(--shadow-sm);
+}
+.theme-switch input:checked + .theme-switch-slider{
+    background-color: var(--tup-primary);
+}
+.theme-switch input:checked + .theme-switch-slider::before{
+    transform: translateX(16px);
+}
+
+/* ---------- Stat card label wrapping fix ---------- */
+.min-width-0{ min-width: 0; }
+.stat-label{
+    font-size: .78rem !important;
+    line-height: 1.25;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
