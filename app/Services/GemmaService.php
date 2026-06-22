@@ -114,9 +114,8 @@ PROMPT;
     }
 
     /**
-     * Course-scoped study assistant chat. The course material is injected
-     * directly into the prompt so the model has no knowledge to draw on
-     * beyond what's between the markers (FR.1.5.2).
+     * Course-scoped study assistant chat. Restricted to published course
+     * content only (FR.1.5.2).
      */
     public function askTutor(string $courseTitle, string $courseContent, array $history, string $question): string
     {
@@ -136,14 +135,14 @@ You are a study assistant for the college course "{$courseTitle}". You may ONLY 
 {$historyBlock}
 Student: {$question}
 
-Reply directly and conversationally as the Tutor, in plain text (no markdown headers, no JSON).
+Reply ONLY with your final answer as the Tutor. Do NOT show your reasoning, thought process, self-checks, or any internal steps. Write only what the student should read, in plain conversational text, no bullet points, no markdown headers, no JSON.
 PROMPT;
 
         return $this->callText($prompt);
     }
 
     /**
-     * Flashcard generation — also restricted to the course material.
+     * Flashcard generation — restricted to published course content only.
      */
     public function generateFlashcards(string $courseTitle, string $courseContent, string $topic, int $count = 10): array
     {
@@ -171,27 +170,70 @@ PROMPT;
 
     protected function callJson(string $prompt): array
     {
-        $text = $this->generate($prompt, ['responseMimeType' => 'application/json', 'maxOutputTokens' => 8192]);
+        $text = $this->generate($prompt, [
+            'responseMimeType' => 'application/json',
+            'maxOutputTokens'  => 8192,
+        ]);
 
-        $cleaned = preg_replace('/^```(?:json)?\s*/i', '', $text);
-        $cleaned = preg_replace('/\s*```$/', '', $cleaned);
+        // Strip markdown fences defensively
+        $cleaned = trim(preg_replace('/^```(?:json)?\s*/i', '', $text));
+        $cleaned = trim(preg_replace('/\s*```$/', '', $cleaned));
 
+        // Try direct decode first — ideal case, no reasoning leaked
         $decoded = json_decode($cleaned, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
-            Log::error('Gemma API returned invalid JSON', [
-                'raw_text'   => $text,
-                'json_error' => json_last_error_msg(),
-            ]);
-            throw new RuntimeException('Gemma API returned a response that was not valid JSON.');
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
         }
 
-        return $decoded;
+        // Gemma leaks chain-of-thought reasoning BEFORE the JSON, and the
+        // reasoning itself often contains { } examples that fool a simple
+        // strpos-from-the-left approach. Fix: collect every { position and
+        // try each one as a potential JSON start, rightmost first — the
+        // actual JSON object is always the LAST { ... } block in the output.
+        $lastClose = strrpos($cleaned, '}');
+
+        if ($lastClose !== false) {
+            $openPositions = [];
+            $offset = 0;
+            while (($pos = strpos($cleaned, '{', $offset)) !== false) {
+                $openPositions[] = $pos;
+                $offset = $pos + 1;
+            }
+
+            foreach (array_reverse($openPositions) as $openPos) {
+                if ($openPos >= $lastClose) {
+                    continue;
+                }
+                $candidate = substr($cleaned, $openPos, $lastClose - $openPos + 1);
+                $decoded = json_decode($candidate, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    return $decoded;
+                }
+            }
+        }
+
+        Log::error('Gemma API returned invalid JSON', [
+            'raw_text'   => $text,
+            'json_error' => json_last_error_msg(),
+        ]);
+        throw new RuntimeException('Gemma API returned a response that was not valid JSON.');
     }
 
     protected function callText(string $prompt): string
     {
-        return $this->generate($prompt, ['maxOutputTokens' => 1024]);
+        $text = $this->generate($prompt, [
+            'maxOutputTokens' => 1024,
+            'temperature'     => 0.3,
+        ]);
+
+        // Gemma leaks chain-of-thought reasoning as bullet points before the
+        // actual answer. The real answer is always the last non-empty paragraph.
+        $paragraphs = array_filter(
+            array_map('trim', explode("\n\n", $text)),
+            fn ($p) => $p !== ''
+        );
+
+        return end($paragraphs) ?: $text;
     }
 
     protected function generate(string $prompt, array $generationConfig = []): string
@@ -200,13 +242,20 @@ PROMPT;
             throw new RuntimeException('GEMINI_API_KEY is not set. Add it to your .env file.');
         }
 
-        $response = Http::timeout(60)->post(
+        // Allow up to 2 minutes for AI calls — Gemma can be slow on large prompts
+        set_time_limit(120);
+
+        $response = Http::timeout(90)->post(
             "{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}",
             [
                 'contents' => [
                     ['parts' => [['text' => $prompt]]],
                 ],
-                'generationConfig' => array_merge(['temperature' => 0.6], $generationConfig),
+                // Note: thinkingConfig/thinkingBudget intentionally excluded —
+                // that is Gemini 2.5+ only and breaks Gemma model calls.
+                'generationConfig' => array_merge([
+                    'temperature' => 0.6,
+                ], $generationConfig),
             ]
         );
 
