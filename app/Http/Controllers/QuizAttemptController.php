@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\ChecksStudentCourseAccess;
 use App\Http\Controllers\Concerns\HandlesAssessmentAttempts;
 use App\Models\Quiz;
 use App\Models\QuizSubmission;
+use App\Models\StudentCourseProgress;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,10 +15,6 @@ class QuizAttemptController extends Controller
 {
     use ChecksStudentCourseAccess, HandlesAssessmentAttempts;
 
-    /**
-     * Shows the take-form if the student hasn't attempted yet, otherwise
-     * their (read-only) result.
-     */
     public function show(Quiz $quiz)
     {
         $user = Auth::user();
@@ -63,7 +60,6 @@ class QuizAttemptController extends Controller
                 'max_score'  => 0,
             ]);
         } catch (QueryException $e) {
-            // Unique (quiz_id, student_id) constraint caught a race condition.
             return redirect()->route('student.quizzes.take', $quiz->quiz_id)
                 ->with('success', 'You have already taken this quiz.');
         }
@@ -71,6 +67,9 @@ class QuizAttemptController extends Controller
         [$score, $maxScore] = $this->recordAnswers($submission, $quiz->questions, $request->input('answers', []));
 
         $submission->update(['score' => $score, 'max_score' => $maxScore]);
+
+        // Recalculate course progress for FR.1.7.3
+        StudentCourseProgress::recalculate($user->user_id, $quiz->course_id);
 
         return redirect()->route('student.quizzes.take', $quiz->quiz_id)
             ->with('success', 'Quiz submitted!');

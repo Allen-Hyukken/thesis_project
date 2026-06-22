@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\ChecksStudentCourseAccess;
 use App\Http\Controllers\Concerns\HandlesAssessmentAttempts;
 use App\Models\Exam;
 use App\Models\ExamSubmission;
+use App\Models\StudentCourseProgress;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,6 +67,9 @@ class ExamAttemptController extends Controller
         [$score, $maxScore] = $this->recordAnswers($submission, $exam->questions, $request->input('answers', []));
 
         $submission->update(['score' => $score, 'max_score' => $maxScore]);
+
+        // Recalculate course progress for FR.1.7.3
+        StudentCourseProgress::recalculate($user->user_id, $exam->course_id);
 
         return redirect()->route('student.exams.take', $exam->exam_id)
             ->with('success', 'Exam submitted!');

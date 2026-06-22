@@ -19,6 +19,7 @@ use App\Http\Controllers\ExamAttemptController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AiTutorController;
 use App\Http\Controllers\FlashcardController;
+use App\Http\Controllers\AnalyticsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -106,7 +107,7 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
     Route::get('/learning-materials', function () { return "Materials Page"; })->name('materials');
     Route::get('/students', function () { return "Students List Page"; })->name('students');
     Route::get('/ai-generator', fn () => redirect()->route('teacher.courses.create'))->name('ai-generate');
-    Route::get('/analytics', function () { return "Results Page"; })->name('results');
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('results');
 });
 
 
