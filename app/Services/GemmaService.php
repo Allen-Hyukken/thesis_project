@@ -249,6 +249,7 @@ PROMPT;
                 'topP' => 0.1,
                 'topK' => 1,
                 'maxOutputTokens' => 4096,
+                'thinkingConfig' => ['thinkingBudget' => 0],
             ]);
 
             $cleaned = trim($text);
@@ -259,19 +260,19 @@ PROMPT;
                 return $decoded;
             }
 
-            Log::warning('Gemma JSON attempt failed', [
+            Log::warning('GemmaService JSON attempt failed', [
                 'attempt' => $attempt,
                 'error' => json_last_error_msg(),
                 'response' => substr($cleaned, 0, 2000),
             ]);
         }
 
-        Log::error('Gemma failed to return valid JSON after 3 attempts', [
+        Log::error('GemmaService failed to return valid JSON after 3 attempts', [
             'prompt' => substr($prompt, 0, 1000),
         ]);
 
         throw new RuntimeException(
-            'Gemma API returned a response that was not valid JSON.'
+            'Gemini API returned a response that was not valid JSON.'
         );
     }
 
@@ -299,17 +300,17 @@ PROMPT;
                 ],
                 'generationConfig' => array_merge([
                     'temperature' => 0.6,
-                    'maxOutputTokens' => 4096, // 👈 move default here (important)
+                    'maxOutputTokens' => 4096,
                 ], $generationConfig),
             ]
         );
 
         if ($response->failed()) {
-            Log::error('Gemma API request failed', [
+            Log::error('GemmaService API request failed', [
                 'status' => $response->status(),
                 'body'   => $response->body(),
             ]);
-            throw new RuntimeException('Gemma API request failed: ' . $response->body());
+            throw new RuntimeException('Gemini API request failed: ' . $response->body());
         }
 
         $json = $response->json();
@@ -332,16 +333,20 @@ PROMPT;
 
         $finishReason = data_get($json, 'candidates.0.finishReason');
 
-        // ✅ FIX #1: DO NOT treat MAX_TOKENS as failure
         if (! $text) {
-            Log::error('Gemma API returned empty text (true failure)', [
+            Log::error('GemmaService API returned empty text', [
                 'finishReason' => $finishReason,
                 'raw'          => $json,
             ]);
 
-            throw new RuntimeException('Gemma API returned an empty response.');
+            throw new RuntimeException('Gemini API returned an empty response.');
         }
 
+        if ($finishReason === 'MAX_TOKENS') {
+            Log::warning('GemmaService response was truncated (MAX_TOKENS)', [
+                'model' => $this->model,
+            ]);
+        }
 
         return $text;
     }

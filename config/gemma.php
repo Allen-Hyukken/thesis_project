@@ -7,7 +7,7 @@ return [
 
     // gemma-4-26b-a4b-it = fast/cheap MoE model, good default for course drafting.
     // gemma-4-31b-it     = highest quality dense model, slower/more expensive.
-    'model' => env('GEMMA_MODEL', 'gemma-4-26b-a4b-it'),
+    'model' => env('GEMMA_MODEL', 'gemini-2.5-flash'),
 
     'base_url' => 'https://generativelanguage.googleapis.com/v1beta/models',
 
