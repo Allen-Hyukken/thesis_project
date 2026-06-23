@@ -41,9 +41,13 @@
                     <label class="form-label font-bold" style="font-size:13px;">How many?</label>
                     <input type="number" id="count-input" class="form-control" value="10" min="3" max="20">
                 </div>
-                <div class="col-md-3">
-                    <button type="submit" id="generate-btn" class="btn btn-primary w-100 font-bold" {{ $lessons->isEmpty() ? 'disabled' : '' }}>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" id="generate-btn" class="btn btn-primary flex-grow-1 font-bold" {{ $lessons->isEmpty() ? 'disabled' : '' }}>
                         <i class="bi bi-stars"></i> Generate
+                    </button>
+                    <button type="button" id="refresh-btn" class="btn btn-outline-secondary font-bold" title="Clear cards &amp; generate a new batch"
+                            style="display:none;">
+                        <i class="bi bi-arrow-clockwise"></i>
                     </button>
                 </div>
             </form>
@@ -90,14 +94,37 @@
 @push('scripts')
     <script>
         (function () {
-            const form        = document.getElementById('generate-form');
+            const form         = document.getElementById('generate-form');
             const moduleSelect = document.getElementById('module-select');
-            const countInput  = document.getElementById('count-input');
-            const btn         = document.getElementById('generate-btn');
-            const grid        = document.getElementById('flashcard-grid');
-            const errorBox    = document.getElementById('generate-error');
-            const csrfToken   = document.querySelector('meta[name="csrf-token"]').content;
-            const generateUrl = '{{ route('student.classes.courses.flashcards.generate', [$class->class_id, $course->course_id]) }}';
+            const countInput   = document.getElementById('count-input');
+            const btn          = document.getElementById('generate-btn');
+            const refreshBtn   = document.getElementById('refresh-btn');
+            const grid         = document.getElementById('flashcard-grid');
+            const errorBox     = document.getElementById('generate-error');
+            const csrfToken    = document.querySelector('meta[name="csrf-token"]').content;
+            const generateUrl  = '{{ route('student.classes.courses.flashcards.generate', [$class->class_id, $course->course_id]) }}';
+
+            let hasCards = {{ $flashcards->isNotEmpty() ? 'true' : 'false' }};
+
+            // Show refresh button if cards already exist on load
+            if (hasCards && refreshBtn) refreshBtn.style.display = '';
+
+            function setLoading(loading) {
+                btn.disabled = loading;
+                if (refreshBtn) refreshBtn.disabled = loading;
+                btn.innerHTML = loading
+                    ? '<span class="spinner-border spinner-border-sm"></span> Generating...'
+                    : '<i class="bi bi-stars"></i> Generate';
+            }
+
+            function clearCards() {
+                // Remove all existing card columns (keep any non-card children like empty-state)
+                grid.querySelectorAll('.col-md-4, .col-sm-6').forEach(el => el.remove());
+                const emptyState = document.getElementById('empty-state');
+                if (emptyState) emptyState.remove();
+                hasCards = false;
+                if (refreshBtn) refreshBtn.style.display = 'none';
+            }
 
             function addCard(front, back) {
                 const emptyState = document.getElementById('empty-state');
@@ -115,44 +142,54 @@
                 col.querySelector('.flip-card-front span').textContent = front;
                 col.querySelector('.flip-card-back span').textContent = back;
                 grid.appendChild(col);
+                hasCards = true;
+                if (refreshBtn) refreshBtn.style.display = '';
+            }
+
+            function doGenerate(clearFirst) {
+                errorBox.classList.add('d-none');
+                if (clearFirst) clearCards();
+                setLoading(true);
+
+                fetch(generateUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        module_id: moduleSelect ? moduleSelect.value : null,
+                        count: countInput.value,
+                    }),
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            data.flashcards.forEach(card => addCard(card.front_text, card.back_text));
+                        } else {
+                            errorBox.textContent = data.message || 'Something went wrong. Please try again.';
+                            errorBox.classList.remove('d-none');
+                        }
+                    })
+                    .catch(() => {
+                        errorBox.textContent = 'Connection error. Please try again.';
+                        errorBox.classList.remove('d-none');
+                    })
+                    .finally(() => setLoading(false));
             }
 
             if (form) {
                 form.addEventListener('submit', function (e) {
                     e.preventDefault();
-                    errorBox.classList.add('d-none');
-                    btn.disabled = true;
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';
+                    // Clear existing cards and generate a fresh batch
+                    doGenerate(true);
+                });
+            }
 
-                    fetch(generateUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            module_id: moduleSelect ? moduleSelect.value : null,
-                            count: countInput.value,
-                        }),
-                    })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                data.flashcards.forEach(card => addCard(card.front_text, card.back_text));
-                            } else {
-                                errorBox.textContent = data.message || 'Something went wrong. Please try again.';
-                                errorBox.classList.remove('d-none');
-                            }
-                        })
-                        .catch(() => {
-                            errorBox.textContent = 'Connection error. Please try again.';
-                            errorBox.classList.remove('d-none');
-                        })
-                        .finally(() => {
-                            btn.disabled = false;
-                            btn.innerHTML = '<i class="bi bi-stars"></i> Generate';
-                        });
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function () {
+                    doGenerate(true);
                 });
             }
         })();

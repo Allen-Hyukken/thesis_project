@@ -210,10 +210,22 @@
                                 @if ($quiz->ai_generated)
                                     <span class="badge bg-light text-primary border" style="font-size:10px;"><i class="bi bi-stars"></i> AI</span>
                                 @endif
+                                <span class="badge {{ $quiz->is_published ? 'bg-success' : 'bg-light text-dark border' }} ms-1" style="font-size:10px;">
+                                    {{ $quiz->is_published ? 'Published' : 'Draft' }}
+                                </span>
                             </h6>
                             <span class="text-muted" style="font-size:12px;">{{ $quiz->questions->count() }} questions</span>
                         </div>
                         <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-primary font-bold assessment-edit-btn"
+                                    data-kind="quiz"
+                                    data-id="{{ $quiz->quiz_id }}"
+                                    data-title="{{ e($quiz->title) }}"
+                                    data-description="{{ e($quiz->description ?? '') }}"
+                                    data-questions="{{ e($quiz->questions->load('choices')->toJson()) }}"
+                                    data-update-url="{{ route('teacher.courses.quizzes.update', [$course->course_id, $quiz->quiz_id]) }}">
+                                <i class="bi bi-pencil me-1"></i> Edit
+                            </button>
                             <form action="{{ route('teacher.courses.quizzes.publish', [$course->course_id, $quiz->quiz_id]) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="btn btn-sm {{ $quiz->is_published ? 'btn-outline-secondary' : 'btn-success' }} font-bold">
@@ -251,10 +263,22 @@
                                 @if ($exam->ai_generated)
                                     <span class="badge bg-light text-primary border" style="font-size:10px;"><i class="bi bi-stars"></i> AI</span>
                                 @endif
+                                <span class="badge {{ $exam->is_published ? 'bg-success' : 'bg-light text-dark border' }} ms-1" style="font-size:10px;">
+                                    {{ $exam->is_published ? 'Published' : 'Draft' }}
+                                </span>
                             </h6>
                             <span class="text-muted" style="font-size:12px;">{{ $exam->questions->count() }} questions</span>
                         </div>
                         <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-primary font-bold assessment-edit-btn"
+                                    data-kind="exam"
+                                    data-id="{{ $exam->exam_id }}"
+                                    data-title="{{ e($exam->title) }}"
+                                    data-description="{{ e($exam->description ?? '') }}"
+                                    data-questions="{{ e($exam->questions->load('choices')->toJson()) }}"
+                                    data-update-url="{{ route('teacher.courses.exams.update', [$course->course_id, $exam->exam_id]) }}">
+                                <i class="bi bi-pencil me-1"></i> Edit
+                            </button>
                             <form action="{{ route('teacher.courses.exams.publish', [$course->course_id, $exam->exam_id]) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="btn btn-sm {{ $exam->is_published ? 'btn-outline-secondary' : 'btn-success' }} font-bold">
@@ -403,6 +427,44 @@
         </div>
     </div>
 
+    {{-- ============================= EDIT QUIZ / EXAM MODAL ============================= --}}
+    <div class="modal fade" id="editAssessmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="edit-assessment-form" method="POST">
+                    @csrf @method('PUT')
+                    <div class="modal-header">
+                        <h5 class="modal-title font-bold" id="editAssessmentModalLabel">Edit Quiz</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label font-bold">Title</label>
+                            <input type="text" name="title" id="edit-assessment-title" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label font-bold">Description <span class="text-muted fw-normal">(optional)</span></label>
+                            <textarea name="description" id="edit-assessment-description" class="form-control" rows="2"></textarea>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="font-bold mb-0">Questions</h6>
+                            <button type="button" class="btn btn-outline-primary btn-sm font-bold"
+                                    onclick="addQuestionRow('edit-assessment-questions-container')">
+                                <i class="bi bi-plus-circle me-1"></i> Add Question
+                            </button>
+                        </div>
+                        <div id="edit-assessment-questions-container"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary font-bold"><i class="bi bi-floppy me-1"></i> Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     @include('teacher.courses.partials.add-lesson-modal')
     @include('teacher.courses.partials.add-activity-modal')
     @include('teacher.courses.partials.add-assessment-modal', ['kind' => 'quiz', 'modalId' => 'addQuizModal', 'storeRoute' => route('teacher.courses.quizzes.store', $course->course_id)])
@@ -502,7 +564,53 @@
                     activityBtn.dataset.due
                 );
             }
+
+            const assessmentBtn = e.target.closest('.assessment-edit-btn');
+            if (assessmentBtn) {
+                openAssessmentEditor(assessmentBtn);
+            }
         });
+
+        // ===================== EDIT QUIZ / EXAM MODAL =====================
+        function openAssessmentEditor(btn) {
+            const kind        = btn.dataset.kind;  // 'quiz' or 'exam'
+            const title       = btn.dataset.title;
+            const description = btn.dataset.description;
+            const updateUrl   = btn.dataset.updateUrl;
+            const questions   = JSON.parse(btn.dataset.questions);
+
+            document.getElementById('editAssessmentModalLabel').textContent = `Edit ${kind.charAt(0).toUpperCase() + kind.slice(1)}`;
+            document.getElementById('edit-assessment-form').action = updateUrl;
+            document.getElementById('edit-assessment-title').value = title;
+            document.getElementById('edit-assessment-description').value = description;
+
+            // Reset and populate questions
+            const containerId = 'edit-assessment-questions-container';
+            resetQuestions(containerId);
+
+            questions.forEach(q => {
+                const row = addQuestionRow(containerId);
+                row.querySelector('.q-text').value   = q.question_text || '';
+                row.querySelector('.q-points').value = q.points || 1;
+                const typeSelect = row.querySelector('.q-type');
+                typeSelect.value = q.question_type === 'open_ended' ? 'open_ended' : 'multiple_choice';
+                toggleQuestionType(typeSelect);
+
+                if (typeSelect.value === 'multiple_choice') {
+                    const choiceInputs = row.querySelectorAll('.choice-text');
+                    const radios       = row.querySelectorAll('.q-correct-radio');
+                    (q.choices || []).forEach((choice, j) => {
+                        if (choiceInputs[j]) choiceInputs[j].value = choice.choice_text || '';
+                        if (choice.is_correct && radios[j]) radios[j].checked = true;
+                    });
+                } else {
+                    row.querySelector('.model-answer').value = q.correct_answer || '';
+                }
+            });
+
+            const modal = new bootstrap.Modal(document.getElementById('editAssessmentModal'));
+            modal.show();
+        }
 
         async function generateLessonContentFromEditor() {
             const title  = document.getElementById('editor-lesson-title-input').value.trim();
@@ -632,37 +740,37 @@
             questionIndexByContainer[containerId] = 0;
         }
 
-async function generateAssessment(kind) {
-    const prefix = kind; // 'quiz' or 'exam'
-    const status = document.getElementById(`new-${prefix}-status`);
-    const numQuestions = document.getElementById(`new-${prefix}-num-questions`).value || 5;
+        async function generateAssessment(kind) {
+            const prefix = kind; // 'quiz' or 'exam'
+            const status = document.getElementById(`new-${prefix}-status`);
+            const numQuestions = document.getElementById(`new-${prefix}-num-questions`).value || 5;
 
-    // Quiz needs a specific topic. Exam covers ALL topics — no topic input needed.
-    let topic = '';
-    if (kind === 'quiz') {
-        const topicInput = document.getElementById(`new-${prefix}-topic`);
-        topic = topicInput ? topicInput.value.trim() : '';
-        if (!topic) { status.textContent = 'Enter a topic first.'; return; }
-    }
+            // Quiz needs a specific topic. Exam covers ALL topics — no topic input needed.
+            let topic = '';
+            if (kind === 'quiz') {
+                const topicInput = document.getElementById(`new-${prefix}-topic`);
+                topic = topicInput ? topicInput.value.trim() : '';
+                if (!topic) { status.textContent = 'Enter a topic first.'; return; }
+            }
 
-    status.textContent = 'Generating with AI...';
+            status.textContent = 'Generating with AI...';
 
-    try {
-        const payload = { kind: kind, num_questions: numQuestions };
-        if (topic) payload.topic = topic;
+            try {
+                const payload = { kind: kind, num_questions: numQuestions };
+                if (topic) payload.topic = topic;
 
-        const res = await fetch('{{ route('teacher.courses.ai.assessment', $course->course_id) }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken(),
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(payload),
-        });
+                const res = await fetch('{{ route('teacher.courses.ai.assessment', $course->course_id) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken(),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload),
+                });
 
-        const result = await res.json();
-        if (!result.success) { status.textContent = result.message || 'Generation failed.'; return; }
+                const result = await res.json();
+                if (!result.success) { status.textContent = result.message || 'Generation failed.'; return; }
 
                 const data = result.data;
                 const containerId = `${kind}-questions-container`;
@@ -689,18 +797,18 @@ async function generateAssessment(kind) {
                     }
                 });
 
-        document.getElementById(`new-${prefix}-ai-generated`).value = '1';
-        status.textContent = `Draft generated — ${data.questions?.length || 0} questions. Review each one, then Save.`;
-    } catch (e) {
-        status.textContent = 'Something went wrong reaching the AI service.';
-    }
-}
-</script>
-                document.getElementById(`new-${kind}-ai-generated`).value = '1';
-                status.textContent = 'Draft generated — review/edit each question, then Save.';
+                document.getElementById(`new-${prefix}-ai-generated`).value = '1';
+                status.textContent = `Draft generated — ${data.questions?.length || 0} questions. Review each one, then Save.`;
             } catch (e) {
                 status.textContent = 'Something went wrong reaching the AI service.';
             }
         }
+    </script>
+    document.getElementById(`new-${kind}-ai-generated`).value = '1';
+    status.textContent = 'Draft generated — review/edit each question, then Save.';
+    } catch (e) {
+    status.textContent = 'Something went wrong reaching the AI service.';
+    }
+    }
     </script>
 @endpush

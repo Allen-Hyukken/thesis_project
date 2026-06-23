@@ -44,6 +44,42 @@ class ExamController extends Controller
         return back()->with('success', 'Exam created.');
     }
 
+    public function update(Request $request, Course $course, Exam $exam)
+    {
+        $this->authorizeOwner($course);
+
+        if ((int) $exam->course_id !== (int) $course->course_id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'title'                      => 'required|string|max:200',
+            'description'                => 'nullable|string',
+            'questions'                  => 'required|array|min:1',
+            'questions.*.question_text'  => 'required|string',
+            'questions.*.question_type'  => 'required|in:multiple_choice,open_ended',
+            'questions.*.points'         => 'required|integer|min:1|max:100',
+            'questions.*.choices'        => 'nullable|array',
+            'questions.*.choices.*.text' => 'nullable|string|max:255',
+            'questions.*.correct_choice' => 'nullable|integer|min:0|max:3',
+            'questions.*.correct_answer' => 'nullable|string',
+        ]);
+
+        $exam->update([
+            'title'       => $validated['title'],
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        foreach ($exam->questions as $question) {
+            $question->choices()->delete();
+        }
+        $exam->questions()->delete();
+
+        $this->saveAssessmentQuestions($exam, $validated['questions']);
+
+        return back()->with('success', 'Exam updated.');
+    }
+
     public function publish(Course $course, Exam $exam)
     {
         $this->authorizeOwner($course);

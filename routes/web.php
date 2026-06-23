@@ -96,11 +96,13 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
 
     // Quizzes
     Route::post('/courses/{course}/quizzes', [QuizController::class, 'store'])->name('courses.quizzes.store');
+    Route::put('/courses/{course}/quizzes/{quiz}', [QuizController::class, 'update'])->name('courses.quizzes.update');
     Route::post('/courses/{course}/quizzes/{quiz}/publish', [QuizController::class, 'publish'])->name('courses.quizzes.publish');
     Route::delete('/courses/{course}/quizzes/{quiz}', [QuizController::class, 'destroy'])->name('courses.quizzes.destroy');
 
     // Exams (kept separate from quizzes)
     Route::post('/courses/{course}/exams', [ExamController::class, 'store'])->name('courses.exams.store');
+    Route::put('/courses/{course}/exams/{exam}', [ExamController::class, 'update'])->name('courses.exams.update');
     Route::post('/courses/{course}/exams/{exam}/publish', [ExamController::class, 'publish'])->name('courses.exams.publish');
     Route::delete('/courses/{course}/exams/{exam}', [ExamController::class, 'destroy'])->name('courses.exams.destroy');
 
