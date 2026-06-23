@@ -399,18 +399,33 @@ function resetQuestions(containerId) {
 
 async function generateAssessment(kind) {
     const prefix = kind; // 'quiz' or 'exam'
-    const topic = document.getElementById(`new-${prefix}-topic`).value.trim();
-    const numQuestions = document.getElementById(`new-${prefix}-num-questions`).value || 5;
     const status = document.getElementById(`new-${prefix}-status`);
-    if (!topic) { status.textContent = 'Enter a topic first.'; return; }
+    const numQuestions = document.getElementById(`new-${prefix}-num-questions`).value || 5;
 
-    status.textContent = 'Generating with Gemma 4...';
+    // Quiz needs a specific topic. Exam covers ALL topics — no topic input needed.
+    let topic = '';
+    if (kind === 'quiz') {
+        const topicInput = document.getElementById(`new-${prefix}-topic`);
+        topic = topicInput ? topicInput.value.trim() : '';
+        if (!topic) { status.textContent = 'Enter a topic first.'; return; }
+    }
+
+    status.textContent = 'Generating with AI...';
+
     try {
+        const payload = { kind: kind, num_questions: numQuestions };
+        if (topic) payload.topic = topic;
+
         const res = await fetch('{{ route('teacher.courses.ai.assessment', $course->course_id) }}', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json' },
-            body: JSON.stringify({ topic: topic, kind: kind, num_questions: numQuestions }),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload),
         });
+
         const result = await res.json();
         if (!result.success) { status.textContent = result.message || 'Generation failed.'; return; }
 
@@ -440,7 +455,7 @@ async function generateAssessment(kind) {
         });
 
         document.getElementById(`new-${prefix}-ai-generated`).value = '1';
-        status.textContent = 'Draft generated — review/edit each question, then Save.';
+        status.textContent = `Draft generated — ${data.questions?.length || 0} questions. Review each one, then Save.`;
     } catch (e) {
         status.textContent = 'Something went wrong reaching the AI service.';
     }

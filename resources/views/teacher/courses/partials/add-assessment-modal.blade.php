@@ -21,22 +21,61 @@
                         <span class="badge bg-light text-primary fw-bold mb-2" style="font-size:11px;">
                             <i class="bi bi-stars me-1"></i> AI ASSIST
                         </span>
-                        <div class="row g-2 align-items-end">
-                            <div class="col-md-6">
-                                <label class="form-label font-bold" style="font-size:13px;">Topic</label>
-                                <input type="text" id="new-{{ $kind }}-topic" class="form-control" placeholder="e.g. Binary Search Trees">
+
+                        @if ($kind === 'quiz')
+                            {{-- Quiz: teacher picks a specific topic --}}
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-6">
+                                    <label class="form-label font-bold" style="font-size:13px;">Topic</label>
+                                    <input type="text"
+                                           id="new-{{ $kind }}-topic"
+                                           class="form-control"
+                                           placeholder="e.g. Binary Search Trees">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label font-bold" style="font-size:13px;"># Questions</label>
+                                    <input type="number"
+                                           id="new-{{ $kind }}-num-questions"
+                                           class="form-control"
+                                           min="3" max="15" value="5">
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button"
+                                            class="btn btn-primary w-100 font-bold"
+                                            onclick="generateAssessment('{{ $kind }}')">
+                                        <i class="bi bi-stars me-1"></i> Generate
+                                    </button>
+                                </div>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label font-bold" style="font-size:13px;"># Questions</label>
-                                <input type="number" id="new-{{ $kind }}-num-questions" class="form-control" min="3" max="15" value="5">
+                        @else
+                            {{-- Exam: covers ALL topics automatically --}}
+                            <div class="alert alert-light border mb-2" style="font-size:13px;">
+                                <i class="bi bi-info-circle me-1 text-primary"></i>
+                                Exams cover <strong>all topics</strong> in this course. The AI will generate
+                                questions from every lesson automatically.
                             </div>
-                            <div class="col-md-3">
-                                <button type="button" class="btn btn-primary w-100 font-bold" onclick="generateAssessment('{{ $kind }}')">
-                                    <i class="bi bi-stars me-1"></i> Generate
-                                </button>
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-6">
+                                    <label class="form-label font-bold" style="font-size:13px;"># Questions</label>
+                                    <input type="number"
+                                           id="new-{{ $kind }}-num-questions"
+                                           class="form-control"
+                                           min="3" max="30" value="20">
+                                    <small class="text-muted">Max 30 questions for exams.</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="button"
+                                            class="btn btn-primary w-100 font-bold"
+                                            onclick="generateAssessment('{{ $kind }}')">
+                                        <i class="bi bi-stars me-1"></i> Generate Exam
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <span id="new-{{ $kind }}-status" class="text-muted d-block mt-1" style="font-size:12px;"></span>
+                        @endif
+
+                        <span id="new-{{ $kind }}-status"
+                              class="text-muted d-block mt-1"
+                              style="font-size:12px;"></span>
                     </div>
 
                     <div class="mb-3">
@@ -49,7 +88,8 @@
                         <textarea name="description" class="form-control" rows="2"></textarea>
                     </div>
 
-                    @if (isset($course) && $course->lessons->count())
+                    {{-- Link to topic: only for quizzes, not exams --}}
+                    @if ($kind === 'quiz' && isset($course) && $course->lessons->count())
                         <div class="mb-3">
                             <label class="form-label font-bold">Link to Topic (optional)</label>
                             <select name="module_id" class="form-control">
@@ -63,7 +103,9 @@
 
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label class="form-label font-bold mb-0">Questions</label>
-                        <button type="button" class="btn btn-light btn-sm font-bold" onclick="addQuestionRow('{{ $kind }}-questions-container')">
+                        <button type="button"
+                                class="btn btn-light btn-sm font-bold"
+                                onclick="addQuestionRow('{{ $kind }}-questions-container')">
                             <i class="bi bi-plus-lg me-1"></i> Add Question
                         </button>
                     </div>

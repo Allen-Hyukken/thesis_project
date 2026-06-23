@@ -86,9 +86,7 @@ PROMPT;
 
         $content = $this->callText($prompt);
 
-        return [
-            'content' => $content
-        ];
+        return ['content' => $content];
     }
 
     public function generateActivity(string $courseTitle, string $moduleTitle, string $courseContent = ''): array
@@ -100,7 +98,11 @@ PROMPT;
         $prompt = <<<PROMPT
 You are designing a learning activity for the topic "{$moduleTitle}" in the course "{$courseTitle}".
 
-{$contentBlock}IMPORTANT: Base this activity ONLY on the lesson content provided above. Do not introduce concepts, topics, or facts that are not present in the lessons. If no lesson content is provided, base it strictly on the topic title.
+{$contentBlock}STRICT RULES:
+- This activity must be based ENTIRELY on the lesson content above.
+- Every instruction, question, or task must reference only concepts explicitly taught in the lessons.
+- Do NOT introduce new topics, outside facts, or concepts not present in the lesson content.
+- If the lesson content does not cover the requested topic, base the activity on the closest related content that IS present.
 
 Respond with ONLY valid JSON (no markdown fences) in exactly this shape:
 {
@@ -122,12 +124,21 @@ PROMPT;
             ? "=== COURSE LESSON CONTENT ===\n{$courseContent}\n=== END COURSE LESSON CONTENT ===\n\n"
             : '';
 
+        // Request 2 extra — LLMs sometimes generate one or two fewer than asked,
+        // so we over-request and trim to exactly $numQuestions after.
+        $requestCount = $numQuestions + 2;
+
         $prompt = <<<PROMPT
 You are writing a {$label} for the topic "{$moduleTitle}" in the course "{$courseTitle}".
 
-{$contentBlock}IMPORTANT: Every question must be based ONLY on the lesson content provided above. Do not test students on concepts, facts, or topics that are not explicitly covered in the lessons.
+{$contentBlock}STRICT RULES:
+- Every single question must test ONLY knowledge explicitly covered in the lesson content above.
+- Do NOT ask about concepts, facts, formulas, or topics not present in the lessons.
+- Choices for multiple_choice questions must also be grounded in the lesson content.
+- Model answers for open_ended questions must be directly supported by the lesson content.
+- If the topic is only partially covered in the lessons, write questions only for the parts that ARE covered.
 
-Create exactly {$numQuestions} questions, mostly multiple_choice with a few open_ended.
+Create exactly {$requestCount} questions. For exams use mostly multiple_choice with some open_ended. For quizzes use all multiple_choice.
 
 Respond with ONLY valid JSON (no markdown fences) in exactly this shape:
 {
@@ -145,17 +156,20 @@ Respond with ONLY valid JSON (no markdown fences) in exactly this shape:
   ]
 }
 
-For multiple_choice questions, include exactly 4 choices labeled A, B, C, D with exactly one marked is_correct: true.
-For open_ended questions, use an empty choices array and fill in correct_answer with a model answer instead.
+For multiple_choice: exactly 4 choices labeled A, B, C, D with exactly one is_correct: true.
+For open_ended: empty choices array, fill correct_answer with a model answer from the lesson content.
 PROMPT;
 
-        return $this->callJson($prompt);
+        $result = $this->callJson($prompt, 8192);
+
+        // Trim to exactly what the teacher requested
+        if (isset($result['questions']) && count($result['questions']) > $numQuestions) {
+            $result['questions'] = array_slice($result['questions'], 0, $numQuestions);
+        }
+
+        return $result;
     }
 
-    /**
-     * Course-scoped study assistant chat. Restricted to published course
-     * content only (FR.1.5.2).
-     */
     public function askTutor(string $courseTitle, string $courseContent, array $history, string $question): string
     {
         $historyText = collect($history)
@@ -193,9 +207,6 @@ PROMPT;
         return $this->callText($prompt);
     }
 
-    /**
-     * Flashcard generation — restricted to published course content only.
-     */
     public function generateFlashcards(string $courseTitle, string $courseContent, string $topic, int $count = 10): array
     {
         $prompt = <<<PROMPT
@@ -220,7 +231,8 @@ PROMPT;
         return $this->callJson($prompt);
     }
 
-    protected function callJson(string $prompt): array
+    // Change 1 — added $maxTokens parameter (default 4096, pass 8192 for exams)
+    protected function callJson(string $prompt, int $maxTokens = 4096): array
     {
         $strictPrompt = <<<PROMPT
 You are a JSON API.
@@ -245,15 +257,14 @@ PROMPT;
 
             $text = $this->generate($strictPrompt, [
                 'responseMimeType' => 'application/json',
-                'temperature' => 0,
-                'topP' => 0.1,
-                'topK' => 1,
-                'maxOutputTokens' => 4096,
-                'thinkingConfig' => ['thinkingBudget' => 0],
+                'temperature'      => 0,
+                'topP'             => 0.1,
+                'topK'             => 1,
+                'maxOutputTokens'  => $maxTokens, // Change 2 — uses the parameter now
+                'thinkingConfig'   => ['thinkingBudget' => 0],
             ]);
 
             $cleaned = trim($text);
-
             $decoded = json_decode($cleaned, true);
 
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
@@ -261,8 +272,8 @@ PROMPT;
             }
 
             Log::warning('GemmaService JSON attempt failed', [
-                'attempt' => $attempt,
-                'error' => json_last_error_msg(),
+                'attempt'  => $attempt,
+                'error'    => json_last_error_msg(),
                 'response' => substr($cleaned, 0, 2000),
             ]);
         }
@@ -271,16 +282,14 @@ PROMPT;
             'prompt' => substr($prompt, 0, 1000),
         ]);
 
-        throw new RuntimeException(
-            'Gemini API returned a response that was not valid JSON.'
-        );
+        throw new RuntimeException('Gemini API returned a response that was not valid JSON.');
     }
 
     protected function callText(string $prompt): string
     {
         return $this->generate($prompt, [
             'maxOutputTokens' => 8192,
-            'temperature' => 0.3,
+            'temperature'     => 0.3,
         ]);
     }
 
@@ -299,7 +308,7 @@ PROMPT;
                     ['parts' => [['text' => $prompt]]],
                 ],
                 'generationConfig' => array_merge([
-                    'temperature' => 0.6,
+                    'temperature'    => 0.6,
                     'maxOutputTokens' => 4096,
                 ], $generationConfig),
             ]
@@ -313,24 +322,20 @@ PROMPT;
             throw new RuntimeException('Gemini API request failed: ' . $response->body());
         }
 
-        $json = $response->json();
-
+        $json  = $response->json();
         $parts = data_get($json, 'candidates.0.content.parts', []);
-
-        $text = '';
+        $text  = '';
 
         foreach ($parts as $part) {
             if (($part['thought'] ?? false) === true) {
-                continue;
+                continue; // skip internal thinking blocks
             }
-
-            if (!empty($part['text'])) {
+            if (! empty($part['text'])) {
                 $text .= $part['text'];
             }
         }
 
-        $text = trim($text);
-
+        $text         = trim($text);
         $finishReason = data_get($json, 'candidates.0.finishReason');
 
         if (! $text) {
@@ -338,7 +343,6 @@ PROMPT;
                 'finishReason' => $finishReason,
                 'raw'          => $json,
             ]);
-
             throw new RuntimeException('Gemini API returned an empty response.');
         }
 

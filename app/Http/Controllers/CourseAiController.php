@@ -63,8 +63,14 @@ class CourseAiController extends Controller
             'topic' => 'required|string|max:200',
         ]);
 
-        // Pass the actual lesson content so the AI stays on-topic
         $courseContent = $this->buildCourseContent($course);
+
+        if ($this->hasNoContent($courseContent)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This course has no lesson content yet. Please write and save your lessons first — activities should be based on what students have learned.',
+            ], 422);
+        }
 
         try {
             $data = $this->gemma->generateActivity($course->title, $request->topic, $courseContent);
@@ -83,18 +89,30 @@ class CourseAiController extends Controller
         $this->authorizeOwner($course);
 
         $request->validate([
-            'topic'         => 'required|string|max:200',
+            // topic is required for quiz, optional for exam (exam covers everything)
+            'topic'         => $request->input('kind') === 'exam' ? 'nullable|string|max:200' : 'required|string|max:200',
             'kind'          => 'required|in:quiz,exam',
-            'num_questions' => 'nullable|integer|min:3|max:15',
+            'num_questions' => 'nullable|integer|min:3|max:30', // raised from 15 to 30
         ]);
 
-        // Pass the actual lesson content so questions are grounded in what was taught
         $courseContent = $this->buildCourseContent($course);
+
+        if ($this->hasNoContent($courseContent)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This course has no lesson content yet. Please write and save your lessons first — assessments should test what was actually taught.',
+            ], 422);
+        }
+
+        // For exams: cover all topics. For quizzes: use the specific topic the teacher chose.
+        $topic = $request->kind === 'exam'
+            ? 'All Topics in ' . $course->title
+            : $request->topic;
 
         try {
             $data = $this->gemma->generateAssessment(
                 $course->title,
-                $request->topic,
+                $topic,
                 $request->kind,
                 $request->integer('num_questions', 5),
                 $courseContent
@@ -109,11 +127,6 @@ class CourseAiController extends Controller
         }
     }
 
-    /**
-     * Builds a plain-text bundle of all lessons in this course.
-     * Used to ground activity and assessment generation strictly
-     * in what the teacher has actually taught.
-     */
     private function buildCourseContent(Course $course, int $charLimit = 12000): string
     {
         $lessons = $course->modules()
@@ -132,5 +145,10 @@ class CourseAiController extends Controller
         return mb_strlen($text) > $charLimit
             ? mb_substr($text, 0, $charLimit) . "\n\n[...content truncated...]"
             : $text;
+    }
+
+    private function hasNoContent(string $courseContent): bool
+    {
+        return $courseContent === '' || str_starts_with($courseContent, 'No lesson content');
     }
 }
