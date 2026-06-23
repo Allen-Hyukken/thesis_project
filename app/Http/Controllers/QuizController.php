@@ -59,4 +59,18 @@ class QuizController extends Controller
             ? 'Quiz published to students.'
             : 'Quiz unpublished.');
     }
+
+    public function destroy(Course $course, Quiz $quiz)
+    {
+        $this->authorizeOwner($course);
+
+        if ((int) $quiz->course_id !== (int) $course->course_id) {
+            abort(404);
+        }
+
+        $quiz->delete();
+
+        return back()->with('success', 'Quiz deleted.');
+    }
+
 }

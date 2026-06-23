@@ -86,17 +86,23 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
     Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
     Route::post('/courses/{course}/publish', [CourseController::class, 'publish'])->name('courses.publish');
 
+    // Course outline (title / description / objectives)
+    Route::put('/courses/{course}/outline', [CourseController::class, 'updateOutline'])->name('courses.outline.update');
+
     // Lessons/Topics and Activities (same table, item_type tells them apart)
     Route::post('/courses/{course}/modules', [ModuleController::class, 'store'])->name('courses.modules.store');
     Route::put('/courses/{course}/modules/{module}', [ModuleController::class, 'update'])->name('courses.modules.update');
+    Route::delete('/courses/{course}/modules/{module}', [ModuleController::class, 'destroy'])->name('courses.modules.destroy');
 
     // Quizzes
     Route::post('/courses/{course}/quizzes', [QuizController::class, 'store'])->name('courses.quizzes.store');
     Route::post('/courses/{course}/quizzes/{quiz}/publish', [QuizController::class, 'publish'])->name('courses.quizzes.publish');
+    Route::delete('/courses/{course}/quizzes/{quiz}', [QuizController::class, 'destroy'])->name('courses.quizzes.destroy');
 
     // Exams (kept separate from quizzes)
     Route::post('/courses/{course}/exams', [ExamController::class, 'store'])->name('courses.exams.store');
     Route::post('/courses/{course}/exams/{exam}/publish', [ExamController::class, 'publish'])->name('courses.exams.publish');
+    Route::delete('/courses/{course}/exams/{exam}', [ExamController::class, 'destroy'])->name('courses.exams.destroy');
 
     // AI draft generation (read-only — saving happens through the routes above)
     Route::post('/courses/ai/outline', [CourseAiController::class, 'outline'])->name('courses.ai.outline');

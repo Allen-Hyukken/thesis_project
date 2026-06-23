@@ -109,4 +109,23 @@ class CourseController extends Controller
             ? 'Course is now published.'
             : 'Course has been unpublished.');
     }
+
+    /**
+     * Update course title, description, and learning objectives (the "outline").
+     */
+    public function updateOutline(Request $request, Course $course)
+    {
+        $this->authorizeOwner($course);
+
+        $validated = $request->validate([
+            'title'               => 'required|string|max:200',
+            'description'         => 'nullable|string',
+            'learning_objectives' => 'nullable|string',
+        ]);
+
+        $course->update($validated);
+
+        return back()->with('success', 'Course outline updated.');
+    }
+
 }

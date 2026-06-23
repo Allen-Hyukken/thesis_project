@@ -22,21 +22,33 @@
             <form id="generate-form" class="row g-2 align-items-end">
                 @csrf
                 <div class="col-md-6">
-                    <label class="form-label font-bold" style="font-size:13px;">Topic</label>
-                    <input type="text" id="topic-input" class="form-control" placeholder="e.g. Photosynthesis, Chapter 2 vocabulary..." maxlength="200" required>
+                    <label class="form-label font-bold" style="font-size:13px;">Choose a Lesson</label>
+                    @if ($lessons->isEmpty())
+                        <div class="alert alert-warning mb-0" style="font-size:13px;">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            No lessons are available yet. Ask your teacher to publish lesson content first.
+                        </div>
+                    @else
+                        <select id="module-select" class="form-select" required>
+                            <option value="" disabled selected>— Select a lesson —</option>
+                            @foreach ($lessons as $lesson)
+                                <option value="{{ $lesson->module_id }}">{{ $lesson->title }}</option>
+                            @endforeach
+                        </select>
+                    @endif
                 </div>
                 <div class="col-md-3">
                     <label class="form-label font-bold" style="font-size:13px;">How many?</label>
                     <input type="number" id="count-input" class="form-control" value="10" min="3" max="20">
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" id="generate-btn" class="btn btn-primary w-100 font-bold">
+                    <button type="submit" id="generate-btn" class="btn btn-primary w-100 font-bold" {{ $lessons->isEmpty() ? 'disabled' : '' }}>
                         <i class="bi bi-stars"></i> Generate
                     </button>
                 </div>
             </form>
             <p class="text-muted mt-2 mb-0" style="font-size:12px;">
-                Flashcards are generated only from the lessons your teacher has published in this course.
+                Flashcards are generated from the selected lesson's content.
             </p>
             <div id="generate-error" class="alert alert-danger mt-2 d-none"></div>
         </div>
@@ -53,7 +65,7 @@
                 </div>
             </div>
         @empty
-            <p class="text-muted" id="empty-state">No flashcards yet — generate some above to start reviewing.</p>
+            <p class="text-muted" id="empty-state">No flashcards yet — pick a lesson and generate some above to start reviewing.</p>
         @endforelse
     </div>
 
@@ -78,13 +90,13 @@
 @push('scripts')
     <script>
         (function () {
-            const form = document.getElementById('generate-form');
-            const topicInput = document.getElementById('topic-input');
-            const countInput = document.getElementById('count-input');
-            const btn = document.getElementById('generate-btn');
-            const grid = document.getElementById('flashcard-grid');
-            const errorBox = document.getElementById('generate-error');
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+            const form        = document.getElementById('generate-form');
+            const moduleSelect = document.getElementById('module-select');
+            const countInput  = document.getElementById('count-input');
+            const btn         = document.getElementById('generate-btn');
+            const grid        = document.getElementById('flashcard-grid');
+            const errorBox    = document.getElementById('generate-error');
+            const csrfToken   = document.querySelector('meta[name="csrf-token"]').content;
             const generateUrl = '{{ route('student.classes.courses.flashcards.generate', [$class->class_id, $course->course_id]) }}';
 
             function addCard(front, back) {
@@ -105,40 +117,44 @@
                 grid.appendChild(col);
             }
 
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                errorBox.classList.add('d-none');
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    errorBox.classList.add('d-none');
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';
 
-                fetch(generateUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({ topic: topicInput.value.trim(), count: countInput.value }),
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            data.flashcards.forEach(card => addCard(card.front_text, card.back_text));
-                            topicInput.value = '';
-                        } else {
-                            errorBox.textContent = data.message || 'Something went wrong. Please try again.';
+                    fetch(generateUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            module_id: moduleSelect ? moduleSelect.value : null,
+                            count: countInput.value,
+                        }),
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                data.flashcards.forEach(card => addCard(card.front_text, card.back_text));
+                            } else {
+                                errorBox.textContent = data.message || 'Something went wrong. Please try again.';
+                                errorBox.classList.remove('d-none');
+                            }
+                        })
+                        .catch(() => {
+                            errorBox.textContent = 'Connection error. Please try again.';
                             errorBox.classList.remove('d-none');
-                        }
-                    })
-                    .catch(() => {
-                        errorBox.textContent = 'Connection error. Please try again.';
-                        errorBox.classList.remove('d-none');
-                    })
-                    .finally(() => {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="bi bi-stars"></i> Generate';
-                    });
-            });
+                        })
+                        .finally(() => {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="bi bi-stars"></i> Generate';
+                        });
+                });
+            }
         })();
     </script>
 @endpush

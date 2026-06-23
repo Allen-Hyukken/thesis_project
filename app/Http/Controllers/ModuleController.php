@@ -32,8 +32,8 @@ class ModuleController extends Controller
         ]);
 
         $nextOrder = $course->modules()
-            ->where('item_type', $validated['item_type'])
-            ->max('order_index') + 1;
+                ->where('item_type', $validated['item_type'])
+                ->max('order_index') + 1;
 
         $course->modules()->create([
             'item_type'     => $validated['item_type'],
@@ -84,4 +84,19 @@ class ModuleController extends Controller
 
         return back()->with('success', ($module->isActivity() ? 'Activity' : 'Lesson/topic') . ' updated.');
     }
+
+    public function destroy(Course $course, CourseModule $module)
+    {
+        $this->authorizeOwner($course);
+
+        if ((int) $module->course_id !== (int) $course->course_id) {
+            abort(404);
+        }
+
+        $label = $module->isActivity() ? 'Activity' : 'Lesson/topic';
+        $module->delete();
+
+        return back()->with('success', "{$label} deleted.");
+    }
+
 }

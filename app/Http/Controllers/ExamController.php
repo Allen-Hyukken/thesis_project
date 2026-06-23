@@ -59,4 +59,18 @@ class ExamController extends Controller
             ? 'Exam published to students.'
             : 'Exam unpublished.');
     }
+
+    public function destroy(Course $course, Exam $exam)
+    {
+        $this->authorizeOwner($course);
+
+        if ((int) $exam->course_id !== (int) $course->course_id) {
+            abort(404);
+        }
+
+        $exam->delete();
+
+        return back()->with('success', 'Exam deleted.');
+    }
+
 }
