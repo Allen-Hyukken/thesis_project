@@ -222,7 +222,7 @@
                                     data-id="{{ $quiz->quiz_id }}"
                                     data-title="{{ e($quiz->title) }}"
                                     data-description="{{ e($quiz->description ?? '') }}"
-                                    data-questions="{{ e($quiz->questions->load('choices')->toJson()) }}"
+                                    data-questions='@json($quiz->questions->load("choices"))'
                                     data-update-url="{{ route('teacher.courses.quizzes.update', [$course->course_id, $quiz->quiz_id]) }}">
                                 <i class="bi bi-pencil me-1"></i> Edit
                             </button>
@@ -275,7 +275,7 @@
                                     data-id="{{ $exam->exam_id }}"
                                     data-title="{{ e($exam->title) }}"
                                     data-description="{{ e($exam->description ?? '') }}"
-                                    data-questions="{{ e($exam->questions->load('choices')->toJson()) }}"
+                                    data-questions='@json($exam->questions->load("choices"))'
                                     data-update-url="{{ route('teacher.courses.exams.update', [$course->course_id, $exam->exam_id]) }}">
                                 <i class="bi bi-pencil me-1"></i> Edit
                             </button>
@@ -437,7 +437,7 @@
                         <h5 class="modal-title font-bold" id="editAssessmentModalLabel">Edit Quiz</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
                         <div class="mb-3">
                             <label class="form-label font-bold">Title</label>
                             <input type="text" name="title" id="edit-assessment-title" class="form-control" required>
@@ -803,12 +803,5 @@
                 status.textContent = 'Something went wrong reaching the AI service.';
             }
         }
-    </script>
-    document.getElementById(`new-${kind}-ai-generated`).value = '1';
-    status.textContent = 'Draft generated — review/edit each question, then Save.';
-    } catch (e) {
-    status.textContent = 'Something went wrong reaching the AI service.';
-    }
-    }
     </script>
 @endpush
