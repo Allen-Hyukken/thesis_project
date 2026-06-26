@@ -28,7 +28,7 @@
 <li class="sidebar-item {{ request()->routeIs('student.ai-tutor') ? 'active' : '' }}">
     <a href="{{ route('student.ai-tutor') }}" class="sidebar-link">
         <i class="bi bi-chat-quote-fill"></i>
-        <span>AI Tutor Chat</span>
+        <span>EDITH Tutor</span>
     </a>
 </li>
 

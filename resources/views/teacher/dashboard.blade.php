@@ -237,7 +237,7 @@
                         <span class="font-bold">AI Course Builder</span>
                     </div>
                     <p style="font-size:13px;opacity:.85;margin-bottom:16px;">
-                        Describe a topic and let Gemma 4 draft a course outline, lessons, activities, quizzes, and exams — you review and edit everything before it's saved.
+                        Describe a topic and let EDITH draft a course outline, lessons, activities, quizzes, and exams — you review and edit everything before it's saved.
                     </p>
                     <a href="{{ route('teacher.ai-generate') }}"
                        class="btn btn-block btn-xl btn-light font-bold w-100">

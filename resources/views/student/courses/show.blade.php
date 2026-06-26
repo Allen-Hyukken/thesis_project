@@ -57,7 +57,7 @@
 
         <li class="nav-item">
             <a class="nav-link" href="{{ route('student.classes.courses.ai-tutor', [$class->class_id, $course->course_id]) }}">
-                <i class="bi bi-robot me-1"></i> AI Tutor
+                <i class="bi bi-robot me-1"></i> EDITH
             </a>
         </li>
         <li class="nav-item">

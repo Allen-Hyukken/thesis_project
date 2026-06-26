@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $course->title . ' — AI Tutor')
+@section('title', $course->title . ' — EDITH')
 
 @section('sidebar-nav')
     @include('student.partials.sidebar-nav')
@@ -8,7 +8,7 @@
 
 @section('page-heading')
     <div>
-        <h3 class="mb-1"><i class="bi bi-robot me-1"></i> AI Study Assistant</h3>
+        <h3 class="mb-1"><i class="bi bi-robot me-1"></i> EDITH — AI Study Assistant</h3>
         <a href="{{ route('student.classes.courses.show', [$class->class_id, $course->course_id]) }}" class="text-muted" style="font-size:13px;">
             <i class="bi bi-arrow-left"></i> Back to {{ $course->title }}
         </a>

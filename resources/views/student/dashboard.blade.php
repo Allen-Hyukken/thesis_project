@@ -185,13 +185,13 @@
             {{-- AI Tutor --}}
             <div class="card">
                 <div class="card-header">
-                    <h4>Ask AI Tutor</h4>
+                    <h4>Ask EDITH</h4>
                 </div>
                 <div class="card-content pb-4">
                     <div class="px-4 py-3">
                         <div class="p-3 rounded mb-3"
                              style="background:#f0f4ff;font-size:13px;color:#25396f;border-radius:0 12px 12px 12px!important;">
-                            Hi! I'm your TUP AI Tutor. Ask me anything about your courses!
+                            Hi! I'm EDITH, your AI study assistant. Ask me anything about your courses!
                         </div>
                         <div class="input-group input-group-sm">
                             <input type="text" class="form-control" placeholder="What is a Linked List?">

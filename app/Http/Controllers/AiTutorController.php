@@ -6,7 +6,7 @@ use App\Http\Controllers\Concerns\AuthorizesEnrollment;
 use App\Models\AiChatHistory;
 use App\Models\ClassRoom;
 use App\Models\Course;
-use App\Services\GemmaService;
+use App\Services\EdithService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +16,7 @@ class AiTutorController extends Controller
 {
     use AuthorizesEnrollment;
 
-    public function __construct(private GemmaService $gemma)
+    public function __construct(private EdithService $edith)
     {
     }
 
@@ -57,7 +57,7 @@ class AiTutorController extends Controller
             ->all();
 
         try {
-            $answer = $this->gemma->askTutor($course->title, $content, $recentHistory, $request->question);
+            $answer = $this->edith->askTutor($course->title, $content, $recentHistory, $request->question);
         } catch (Throwable $e) {
             Log::warning('Gemma tutor request failed: ' . $e->getMessage());
 

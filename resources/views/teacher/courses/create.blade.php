@@ -27,7 +27,7 @@
             <div class="card mb-3" style="border:1px solid #c7d2fe;">
                 <div class="card-body">
                     <span class="badge bg-light text-primary fw-bold mb-2" style="font-size:11px;">
-                        <i class="bi bi-stars me-1"></i> AI ASSIST (Gemma 4)
+                        <i class="bi bi-stars me-1"></i> AI ASSIST (EDITH)
                     </span>
                     <h5 class="font-bold mb-2">Draft an outline first, then refine it</h5>
                     <p class="text-muted mb-3" style="font-size:13px;">
@@ -134,101 +134,101 @@
 @endsection
 
 @push('scripts')
-<script>
-let moduleIndex = 0;
+    <script>
+        let moduleIndex = 0;
 
-function csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-}
-
-function updateEmptyState() {
-    const container = document.getElementById('modules-container');
-    document.getElementById('no-modules-msg').style.display = container.children.length === 0 ? 'block' : 'none';
-}
-
-function addModuleRow(title = '', content = '', aiGenerated = false) {
-    const template = document.getElementById('module-row-template');
-    const node = template.content.cloneNode(true);
-    const row = node.querySelector('.module-row');
-    const i = moduleIndex++;
-
-    const titleInput = row.querySelector('.module-title');
-    const contentInput = row.querySelector('.module-content');
-    titleInput.value = title;
-    contentInput.value = content;
-    titleInput.name = `modules[${i}][title]`;
-    contentInput.name = `modules[${i}][content]`;
-
-    const aiField = document.createElement('input');
-    aiField.type = 'hidden';
-    aiField.name = `modules[${i}][ai_generated]`;
-    aiField.value = aiGenerated ? '1' : '0';
-    row.appendChild(aiField);
-
-    if (aiGenerated) {
-        row.querySelector('.module-ai-badge').style.display = 'inline-block';
-    }
-
-    document.getElementById('modules-container').appendChild(row);
-    updateEmptyState();
-}
-
-function toggleModuleRow(checkbox) {
-    const row = checkbox.closest('.module-row');
-    row.querySelectorAll('.module-title, .module-content').forEach(el => {
-        el.disabled = !checkbox.checked;
-    });
-}
-
-async function generateOutline() {
-    const topic = document.getElementById('ai-topic').value.trim();
-    const notes = document.getElementById('ai-notes').value.trim();
-    const status = document.getElementById('outline-status');
-    const btn = document.getElementById('generate-outline-btn');
-
-    if (!topic) {
-        status.textContent = 'Enter a course topic first.';
-        return;
-    }
-
-    btn.disabled = true;
-    status.textContent = 'Generating with Gemma 4...';
-
-    try {
-        const response = await fetch('{{ route('teacher.courses.ai.outline') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken(),
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ topic, notes }),
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
-            status.textContent = result.message || 'Generation failed.';
-            btn.disabled = false;
-            return;
+        function csrfToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         }
 
-        const data = result.data;
-        document.getElementById('title').value = data.title || '';
-        document.getElementById('description').value = data.description || '';
-        document.getElementById('learning_objectives').value = data.learning_objectives || '';
+        function updateEmptyState() {
+            const container = document.getElementById('modules-container');
+            document.getElementById('no-modules-msg').style.display = container.children.length === 0 ? 'block' : 'none';
+        }
 
-        document.getElementById('modules-container').innerHTML = '';
-        (data.modules || []).forEach(m => addModuleRow(m.title || '', m.summary || '', true));
+        function addModuleRow(title = '', content = '', aiGenerated = false) {
+            const template = document.getElementById('module-row-template');
+            const node = template.content.cloneNode(true);
+            const row = node.querySelector('.module-row');
+            const i = moduleIndex++;
 
-        status.textContent = 'Outline generated — review and edit before creating the course.';
-    } catch (e) {
-        status.textContent = 'Something went wrong reaching the AI service.';
-    } finally {
-        btn.disabled = false;
-    }
-}
+            const titleInput = row.querySelector('.module-title');
+            const contentInput = row.querySelector('.module-content');
+            titleInput.value = title;
+            contentInput.value = content;
+            titleInput.name = `modules[${i}][title]`;
+            contentInput.name = `modules[${i}][content]`;
 
-updateEmptyState();
-</script>
+            const aiField = document.createElement('input');
+            aiField.type = 'hidden';
+            aiField.name = `modules[${i}][ai_generated]`;
+            aiField.value = aiGenerated ? '1' : '0';
+            row.appendChild(aiField);
+
+            if (aiGenerated) {
+                row.querySelector('.module-ai-badge').style.display = 'inline-block';
+            }
+
+            document.getElementById('modules-container').appendChild(row);
+            updateEmptyState();
+        }
+
+        function toggleModuleRow(checkbox) {
+            const row = checkbox.closest('.module-row');
+            row.querySelectorAll('.module-title, .module-content').forEach(el => {
+                el.disabled = !checkbox.checked;
+            });
+        }
+
+        async function generateOutline() {
+            const topic = document.getElementById('ai-topic').value.trim();
+            const notes = document.getElementById('ai-notes').value.trim();
+            const status = document.getElementById('outline-status');
+            const btn = document.getElementById('generate-outline-btn');
+
+            if (!topic) {
+                status.textContent = 'Enter a course topic first.';
+                return;
+            }
+
+            btn.disabled = true;
+            status.textContent = 'Generating with EDITH...';
+
+            try {
+                const response = await fetch('{{ route('teacher.courses.ai.outline') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken(),
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ topic, notes }),
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    status.textContent = result.message || 'Generation failed.';
+                    btn.disabled = false;
+                    return;
+                }
+
+                const data = result.data;
+                document.getElementById('title').value = data.title || '';
+                document.getElementById('description').value = data.description || '';
+                document.getElementById('learning_objectives').value = data.learning_objectives || '';
+
+                document.getElementById('modules-container').innerHTML = '';
+                (data.modules || []).forEach(m => addModuleRow(m.title || '', m.summary || '', true));
+
+                status.textContent = 'Outline generated — review and edit before creating the course.';
+            } catch (e) {
+                status.textContent = 'Something went wrong reaching the AI service.';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        updateEmptyState();
+    </script>
 @endpush

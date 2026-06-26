@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $mode === 'flashcards' ? 'AI Flashcards' : 'AI Tutor Chat')
+@section('title', $mode === 'flashcards' ? 'EDITH Flashcards' : 'EDITH Tutor Chat')
 
 @section('sidebar-nav')
     @include('student.partials.sidebar-nav')
@@ -9,9 +9,9 @@
 @section('page-heading')
     <h3 class="mb-1">
         @if ($mode === 'flashcards')
-            <i class="bi bi-layers-fill me-1"></i> AI Flashcards
+            <i class="bi bi-layers-fill me-1"></i> EDITH Flashcards
         @else
-            <i class="bi bi-chat-quote-fill me-1"></i> AI Tutor Chat
+            <i class="bi bi-chat-quote-fill me-1"></i> EDITH Tutor Chat
         @endif
     </h3>
 @endsection
@@ -19,7 +19,7 @@
 @section('content')
 
     <p class="text-muted" style="font-size:13px;">
-        Pick a course to {{ $mode === 'flashcards' ? 'generate flashcards for' : 'chat with the AI tutor about' }}.
+        Pick a course to {{ $mode === 'flashcards' ? 'generate flashcards for' : 'chat with EDITH about' }}.
     </p>
 
     <div class="row g-3">

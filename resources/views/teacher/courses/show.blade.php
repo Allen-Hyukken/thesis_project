@@ -618,7 +618,7 @@
             const textarea = document.getElementById('editor-content');
             if (!title) { status.textContent = 'Enter a title first.'; return; }
 
-            status.textContent = 'Generating with Gemma 4...';
+            status.textContent = 'Generating with EDITH...';
             try {
                 const res = await fetch('{{ route('teacher.courses.ai.lesson-content', $course->course_id) }}', {
                     method: 'POST',
@@ -655,7 +655,7 @@
             const status = document.getElementById('new-lesson-status');
             if (!title) { status.textContent = 'Enter a title first.'; return; }
 
-            status.textContent = 'Generating with Gemma 4...';
+            status.textContent = 'Generating with EDITH...';
             try {
                 const res = await fetch('{{ route('teacher.courses.ai.lesson-content', $course->course_id) }}', {
                     method: 'POST',
@@ -678,7 +678,7 @@
             const status = document.getElementById('new-activity-status');
             if (!topic) { status.textContent = 'Enter a topic first.'; return; }
 
-            status.textContent = 'Generating with Gemma 4...';
+            status.textContent = 'Generating with EDITH...';
             try {
                 const res = await fetch('{{ route('teacher.courses.ai.activity', $course->course_id) }}', {
                     method: 'POST',

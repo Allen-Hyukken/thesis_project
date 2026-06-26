@@ -19,7 +19,7 @@
                     {{-- AI helper --}}
                     <div class="border rounded p-3 mb-3" style="background:#f8f9ff;">
                         <span class="badge bg-light text-primary fw-bold mb-2" style="font-size:11px;">
-                            <i class="bi bi-stars me-1"></i> AI ASSIST
+                            <i class="bi bi-stars me-1"></i> AI ASSIST (EDITH)
                         </span>
 
                         @if ($kind === 'quiz')

@@ -91,7 +91,7 @@
             <div class="auth2-card-head">
                 <div class="auth2-card-avatar"><i class="bi bi-stars"></i></div>
                 <div>
-                    <div class="auth2-card-name">AI Tutor</div>
+                    <div class="auth2-card-name">EDITH</div>
                     <div class="auth2-card-tag">Online now</div>
                 </div>
             </div>
