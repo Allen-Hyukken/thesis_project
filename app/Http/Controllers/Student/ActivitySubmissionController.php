@@ -10,6 +10,7 @@ use App\Models\StudentCourseProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ActivitySubmissionController extends Controller
 {
@@ -17,15 +18,11 @@ class ActivitySubmissionController extends Controller
 
     public function store(Request $request, CourseModule $module)
     {
-        if (! $module->isActivity()) {
-            abort(404);
-        }
+        if (! $module->isActivity()) abort(404);
 
         $user = Auth::user();
 
-        if (! $this->studentHasAccessToCourse($module->course)) {
-            abort(403);
-        }
+        if (! $this->studentHasAccessToCourse($module->course)) abort(403);
 
         $existing = ActivitySubmission::where('module_id', $module->module_id)
             ->where('student_id', $user->user_id)
@@ -55,9 +52,14 @@ class ActivitySubmissionController extends Controller
         ];
 
         if ($request->hasFile('file')) {
-            $file                      = $request->file('file');
-            $data['file_path']         = $file->store("activity-submissions/{$module->module_id}", 'local');
+            $file = $request->file('file');
+            // Remove old file if re-submitting
+            if ($existing && $existing->file_path) {
+                Storage::disk('local')->delete($existing->file_path);
+            }
+            $data['file_path']          = $file->store("activity-submissions/{$module->module_id}", 'local');
             $data['file_original_name'] = $file->getClientOriginalName();
+            $data['file_mime_type']     = $file->getMimeType();
         }
 
         ActivitySubmission::updateOrCreate(
@@ -65,7 +67,6 @@ class ActivitySubmissionController extends Controller
             $data
         );
 
-        // Track activity-level engagement for FR.1.7.2
         DB::statement(
             'INSERT INTO module_engagement
                 (module_id, student_id, view_count, total_time_sec, last_viewed_at)
@@ -76,9 +77,59 @@ class ActivitySubmissionController extends Controller
             [$module->module_id, $user->user_id]
         );
 
-        // Recalculate course progress for FR.1.7.3
         StudentCourseProgress::recalculate($user->user_id, $module->course_id);
 
-        return back()->with('success', 'Activity submitted.');
+        return back()->with('success', 'Activity submitted successfully.');
+    }
+
+    /**
+     * Download/preview a student's own submission file.
+     */
+    public function downloadFile(ActivitySubmission $submission)
+    {
+        $user = Auth::user();
+
+        // Student can only download their own; teacher can download any in their course
+        $isOwner   = (int) $submission->student_id === (int) $user->user_id;
+        $isTeacher = $user->role === 'teacher'
+            && (int) $submission->module->course->teacher_id === (int) $user->user_id;
+
+        if (! $isOwner && ! $isTeacher) abort(403);
+
+        if (! $submission->file_path || ! Storage::disk('local')->exists($submission->file_path)) {
+            abort(404, 'File not found.');
+        }
+
+        return Storage::disk('local')->download(
+            $submission->file_path,
+            $submission->file_original_name
+        );
+    }
+
+    /**
+     * Stream submission file inline (for preview in browser).
+     */
+    public function previewFile(ActivitySubmission $submission)
+    {
+        $user = Auth::user();
+
+        $isOwner   = (int) $submission->student_id === (int) $user->user_id;
+        $isTeacher = $user->role === 'teacher'
+            && (int) $submission->module->course->teacher_id === (int) $user->user_id;
+
+        if (! $isOwner && ! $isTeacher) abort(403);
+
+        if (! $submission->file_path || ! Storage::disk('local')->exists($submission->file_path)) {
+            abort(404, 'File not found.');
+        }
+
+        $mime = $submission->file_mime_type ?? 'application/octet-stream';
+        $path = Storage::disk('local')->path($submission->file_path);
+
+        return response()->file($path, [
+            'Content-Type'        => $mime,
+            'Content-Disposition' => 'inline; filename="' . $submission->file_original_name . '"',
+            'Cache-Control'       => 'private, max-age=3600',
+        ]);
     }
 }
