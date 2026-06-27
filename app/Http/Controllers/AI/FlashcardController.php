@@ -8,7 +8,7 @@ use App\Models\ClassRoom;
 use App\Models\Course;
 use App\Models\CourseModule;
 use App\Models\Flashcard;
-use App\Services\GemmaService;
+use App\Services\EdithService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -18,7 +18,7 @@ class FlashcardController extends Controller
 {
     use AuthorizesEnrollment;
 
-    public function __construct(private GemmaService $gemma)
+    public function __construct(private EdithService $edith)
     {
     }
 
@@ -69,7 +69,7 @@ class FlashcardController extends Controller
         }
 
         try {
-            $data = $this->gemma->generateFlashcards(
+            $data = $this->edith->generateFlashcards(
                 $course->title,
                 $lesson->content,   // scope AI to just this lesson
                 $lesson->title,     // use lesson title as the topic

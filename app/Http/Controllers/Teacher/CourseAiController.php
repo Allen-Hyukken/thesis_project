@@ -5,7 +5,7 @@ use App\Http\Controllers\Controller;
 
 use App\Http\Controllers\Concerns\AuthorizesCourseOwner;
 use App\Models\Course;
-use App\Services\GemmaService;
+use App\Services\EdithService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -14,7 +14,7 @@ class CourseAiController extends Controller
 {
     use AuthorizesCourseOwner;
 
-    public function __construct(private GemmaService $gemma) {}
+    public function __construct(private EdithService $edith) {}
 
     public function outline(Request $request)
     {
@@ -24,7 +24,7 @@ class CourseAiController extends Controller
         ]);
 
         try {
-            $data = $this->gemma->generateOutline($request->topic, $request->notes);
+            $data = $this->edith->generateOutline($request->topic, $request->notes);
             return response()->json(['success' => true, 'data' => $data]);
         } catch (Throwable $e) {
             Log::warning('Gemma outline generation failed: ' . $e->getMessage());
@@ -45,7 +45,7 @@ class CourseAiController extends Controller
         ]);
 
         try {
-            $data = $this->gemma->generateLessonContent($course->title, $request->title, $request->summary);
+            $data = $this->edith->generateLessonContent($course->title, $request->title, $request->summary);
             return response()->json(['success' => true, 'data' => $data]);
         } catch (Throwable $e) {
             Log::warning('Gemma lesson generation failed: ' . $e->getMessage());
@@ -74,7 +74,7 @@ class CourseAiController extends Controller
         }
 
         try {
-            $data = $this->gemma->generateActivity($course->title, $request->topic, $courseContent);
+            $data = $this->edith->generateActivity($course->title, $request->topic, $courseContent);
             return response()->json(['success' => true, 'data' => $data]);
         } catch (Throwable $e) {
             Log::warning('Gemma activity generation failed: ' . $e->getMessage());
@@ -111,7 +111,7 @@ class CourseAiController extends Controller
             : $request->topic;
 
         try {
-            $data = $this->gemma->generateAssessment(
+            $data = $this->edith->generateAssessment(
                 $course->title,
                 $topic,
                 $request->kind,
