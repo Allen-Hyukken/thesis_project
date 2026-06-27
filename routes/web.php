@@ -71,6 +71,7 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
     // Materials
     Route::get('/classes/{class}/materials',                        [ClassMaterialController::class, 'index'])->name('classes.materials.index');
     Route::post('/classes/{class}/materials',                       [ClassMaterialController::class, 'store'])->name('classes.materials.store');
+    Route::get('/classes/{class}/materials/{material}/preview',     [ClassMaterialController::class, 'preview'])->name('classes.materials.preview');
     Route::get('/classes/{class}/materials/{material}/download',    [ClassMaterialController::class, 'download'])->name('classes.materials.download');
     Route::delete('/classes/{class}/materials/{material}',          [ClassMaterialController::class, 'destroy'])->name('classes.materials.destroy');
 
@@ -138,6 +139,7 @@ Route::group(['prefix' => 'student', 'as' => 'student.'], function () {
 
     // Materials (download only)
     Route::get('/classes/{class}/materials',                        [ClassMaterialController::class, 'index'])->name('classes.materials.index');
+    Route::get('/classes/{class}/materials/{material}/preview',     [ClassMaterialController::class, 'preview'])->name('classes.materials.preview');
     Route::get('/classes/{class}/materials/{material}/download',    [ClassMaterialController::class, 'download'])->name('classes.materials.download');
 
     // My Scores
@@ -156,6 +158,10 @@ Route::group(['prefix' => 'student', 'as' => 'student.'], function () {
     // Exams
     Route::get('/exams/{exam}/take',        [ExamAttemptController::class, 'show'])->name('exams.take');
     Route::post('/exams/{exam}/submit',     [ExamAttemptController::class, 'submit'])->name('exams.submit');
+
+    // Activity submission file access
+    Route::get('/activities/submissions/{submission}/preview',  [ActivitySubmissionController::class, 'previewFile'])->name('activities.submissions.preview');
+    Route::get('/activities/submissions/{submission}/download', [ActivitySubmissionController::class, 'downloadFile'])->name('activities.submissions.download');
 
     // EDITH AI Tutor
     Route::get('/ai-tutor',                                                         [AiTutorController::class, 'pickCourse'])->name('ai-tutor');
