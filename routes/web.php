@@ -60,6 +60,10 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
     Route::post('/classes',                   [ClassController::class, 'store'])->name('classes.store');
     Route::get('/classes/{class}',            [ClassController::class, 'show'])->name('classes.show');
 
+    // Archive / Restore
+    Route::post('/classes/{class}/archive',   [ClassController::class, 'archive'])->name('classes.archive');
+    Route::post('/classes/{class}/unarchive', [ClassController::class, 'unarchive'])->name('classes.unarchive');
+
     // Members
     Route::get('/classes/{class}/members',                          [ClassController::class, 'members'])->name('classes.members.index');
     Route::post('/classes/{class}/members/{student}/kick',          [ClassController::class, 'kickMember'])->name('classes.members.kick');
@@ -133,6 +137,10 @@ Route::group(['prefix' => 'student', 'as' => 'student.'], function () {
     Route::get('/classes',             [ClassController::class, 'index'])->name('classes');
     Route::post('/classes/join',       [ClassController::class, 'join'])->name('classes.join');
     Route::get('/classes/{class}',     [ClassController::class, 'show'])->name('classes.show');
+
+    // Archive / Restore
+    Route::post('/classes/{class}/archive',   [ClassController::class, 'studentArchive'])->name('classes.archive');
+    Route::post('/classes/{class}/unarchive', [ClassController::class, 'studentUnarchive'])->name('classes.unarchive');
 
     // Members (read-only roster)
     Route::get('/classes/{class}/members',                          [ClassController::class, 'members'])->name('classes.members.index');

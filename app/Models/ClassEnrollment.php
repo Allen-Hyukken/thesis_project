@@ -19,12 +19,14 @@ class ClassEnrollment extends Model
         'student_id',
         'enrolled_by',
         'status',
+        'is_archived',
     ];
 
     protected function casts(): array
     {
         return [
             'enrolled_at' => 'datetime',
+            'is_archived' => 'boolean',
         ];
     }
 

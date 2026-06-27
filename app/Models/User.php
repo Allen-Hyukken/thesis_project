@@ -71,7 +71,8 @@ class User extends Authenticatable
             'class_id',
             'user_id',
             'class_id'
-        )->wherePivot('status', 'active');
+        )->wherePivot('status', 'active')
+            ->withPivot('is_archived');
     }
 
     public function activitySubmissions()

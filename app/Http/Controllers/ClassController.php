@@ -21,21 +21,27 @@ class ClassController extends Controller
         $user = Auth::user();
 
         if ($user->role === 'teacher') {
-            $classes = ClassRoom::where('teacher_id', $user->user_id)
+            $allClasses = ClassRoom::where('teacher_id', $user->user_id)
                 ->withCount(['enrollments' => function ($query) {
                     $query->where('status', 'active');
                 }])
                 ->latest('created_at')
                 ->get();
 
-            return view('teacher.classes', compact('classes'));
+            $classes         = $allClasses->where('is_active', true)->values();
+            $archivedClasses = $allClasses->where('is_active', false)->values();
+
+            return view('teacher.classes', compact('classes', 'archivedClasses'));
         }
 
-        $classes = $user->enrolledClasses()
+        $allClasses = $user->enrolledClasses()
             ->with('teacher')
             ->get();
 
-        return view('student.classes', compact('classes'));
+        $classes         = $allClasses->filter(fn ($c) => ! ($c->pivot->is_archived ?? false))->values();
+        $archivedClasses = $allClasses->filter(fn ($c) =>   ($c->pivot->is_archived ?? false))->values();
+
+        return view('student.classes', compact('classes', 'archivedClasses'));
     }
 
     /**
@@ -232,6 +238,52 @@ class ClassController extends Controller
         $class->postedCourses()->detach($course->course_id);
 
         return back()->with('success', "\"{$course->title}\" removed from {$class->class_name}.");
+    }
+
+    /**
+     * Teacher: archive their own class (sets is_active = 0).
+     */
+    public function archive(ClassRoom $class)
+    {
+        $this->authorizeTeacherOwnsClass($class);
+        $class->update(['is_active' => 0]);
+        return back()->with('success', "\"{$class->class_name}\" has been archived.");
+    }
+
+    /**
+     * Teacher: restore an archived class (sets is_active = 1).
+     */
+    public function unarchive(ClassRoom $class)
+    {
+        $this->authorizeTeacherOwnsClass($class);
+        $class->update(['is_active' => 1]);
+        return back()->with('success', "\"{$class->class_name}\" has been restored.");
+    }
+
+    /**
+     * Student: archive (hide) an enrolled class from their main list.
+     */
+    public function studentArchive(ClassRoom $class)
+    {
+        ClassEnrollment::where('class_id', $class->class_id)
+            ->where('student_id', Auth::id())
+            ->where('status', 'active')
+            ->update(['is_archived' => 1]);
+
+        return back()->with('success', "\"{$class->class_name}\" moved to Archived.");
+    }
+
+    /**
+     * Student: restore an archived class back to their main list.
+     */
+    public function studentUnarchive(ClassRoom $class)
+    {
+        ClassEnrollment::where('class_id', $class->class_id)
+            ->where('student_id', Auth::id())
+            ->where('status', 'active')
+            ->update(['is_archived' => 0]);
+
+        return back()->with('success', "\"{$class->class_name}\" restored to My Classes.");
     }
 
     /**
