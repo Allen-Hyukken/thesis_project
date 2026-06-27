@@ -16,7 +16,6 @@ class Course extends Model
         'title',
         'description',
         'learning_objectives',
-        'visibility',
         'status',
         'ai_generated',
     ];
