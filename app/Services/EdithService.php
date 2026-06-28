@@ -155,7 +155,8 @@ You are EDITH, an AI writing a {$label} for the topic "{$moduleTitle}" in the co
 - Do NOT ask about concepts, facts, formulas, or topics not present in the lessons.
 - Choices for multiple_choice questions must also be grounded in the lesson content.
 
-Create exactly {$requestCount} questions. For exams use mostly multiple_choice with some open_ended. For quizzes use all multiple_choice.
+// AFTER
+Create exactly {$requestCount} questions. ALL questions must be multiple_choice only — no open_ended questions regardless of whether this is a quiz or exam.
 
 Respond with ONLY valid JSON (no markdown fences) in exactly this shape:
 {

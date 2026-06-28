@@ -24,6 +24,15 @@
 </li>
 
 
+
+
+
+<li class="sidebar-item {{ request()->routeIs('teacher.courses.trash') ?  : '' }}">
+    <a href="{{ route('teacher.courses.trash') }}" class="sidebar-link">
+        <i class="bi bi-trash3"></i>
+        <span>Recycle Bin</span>
+    </a>
+</li>
 <li class="sidebar-title">AI Tools</li>
 
 <li class="sidebar-item {{ request()->routeIs('teacher.ai-generate') ? 'active' : '' }}">
@@ -60,3 +69,5 @@
         @csrf
     </form>
 </li>
+
+

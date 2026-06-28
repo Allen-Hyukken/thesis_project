@@ -88,6 +88,7 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
     // Courses
     Route::get('/courses',                    [CourseController::class, 'index'])->name('courses');
     Route::get('/courses/create',             [CourseController::class, 'create'])->name('courses.create');
+    Route::get('/courses/trash',              [CourseController::class, 'trash'])->name('courses.trash'); // <-- Moved above wildcards to resolve 404 conflict
     Route::post('/courses',                   [CourseController::class, 'store'])->name('courses.store');
     Route::get('/courses/{course}',           [CourseController::class, 'show'])->name('courses.show');
     Route::post('/courses/{course}/publish',  [CourseController::class, 'publish'])->name('courses.publish');
@@ -115,6 +116,11 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
     Route::post('/courses/{course}/ai/lesson-content',             [CourseAiController::class, 'lessonContent'])->name('courses.ai.lesson-content');
     Route::post('/courses/{course}/ai/activity',                   [CourseAiController::class, 'activity'])->name('courses.ai.activity');
     Route::post('/courses/{course}/ai/assessment',                 [CourseAiController::class, 'assessment'])->name('courses.ai.assessment');
+
+    // Course Trash & Soft Deletes
+    Route::delete('/courses/{course}/trash', [CourseController::class, 'softDelete'])->name('courses.trash.move');
+    Route::post('/courses/{id}/restore', [CourseController::class, 'restore'])->name('courses.restore');
+    Route::delete('/courses/{id}/force-delete', [CourseController::class, 'forceDelete'])->name('courses.force-delete');
 
     // Analytics
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('results');

@@ -27,6 +27,15 @@
                     {{ $course->status === 'published' ? 'Unpublish' : 'Publish Course' }}
                 </button>
             </form>
+            {{-- Feature 4: Move to Trash --}}
+            <form action="{{ route('teacher.courses.trash.move', $course->course_id) }}"
+                  method="POST"
+                  onsubmit="return confirm('Move this course to trash? You can restore it later from the Trash page.')">
+                @csrf @method('DELETE')
+                <button type="submit" class="btn btn-outline-danger font-bold">
+                    <i class="bi bi-trash me-1"></i> Move to Trash
+                </button>
+            </form>
         </div>
     </div>
 @endsection
@@ -97,7 +106,6 @@
                                 @endif
                             </h6>
                             <div class="d-flex gap-1">
-                                {{-- Edit button opens the fullscreen modal --}}
                                 <button class="btn btn-sm btn-outline-primary lesson-edit-btn"
                                         data-module-id="{{ $lesson->module_id }}"
                                         data-title="{{ e($lesson->title) }}"
@@ -105,7 +113,6 @@
                                         data-ai="{{ $lesson->ai_generated ? '1' : '0' }}">
                                     <i class="bi bi-pencil me-1"></i>{{ $lesson->content ? 'Edit Content' : 'Write / Generate' }}
                                 </button>
-                                {{-- Delete button --}}
                                 <form action="{{ route('teacher.courses.modules.destroy', [$course->course_id, $lesson->module_id]) }}" method="POST"
                                       data-confirm="Delete lesson {{ e($lesson->title) }}? This cannot be undone."
                                       onsubmit="return confirm(this.dataset.confirm)">
@@ -120,19 +127,15 @@
 
                         <div class="collapse mt-3" id="lessonEdit{{ $lesson->module_id }}">
                             <form action="{{ route('teacher.courses.modules.update', [$course->course_id, $lesson->module_id]) }}" method="POST">
-                                @csrf
-                                @method('PUT')
+                                @csrf @method('PUT')
                                 <input type="hidden" name="title" value="{{ $lesson->title }}">
                                 <input type="hidden" name="ai_generated" id="ai-generated-{{ $lesson->module_id }}" value="{{ $lesson->ai_generated ? 1 : 0 }}">
-
                                 <button type="button" class="btn btn-outline-primary btn-sm mb-2"
                                         onclick="generateLessonContent({{ $lesson->module_id }}, {{ \Illuminate\Support\Js::from($lesson->title) }})">
                                     <i class="bi bi-stars me-1"></i> Generate with AI
                                 </button>
                                 <span id="lesson-status-{{ $lesson->module_id }}" class="text-muted ms-2" style="font-size:12px;"></span>
-
                                 <textarea name="content" id="content-{{ $lesson->module_id }}" class="form-control mb-2" rows="6">{{ $lesson->content }}</textarea>
-
                                 <button type="submit" class="btn btn-primary btn-sm font-bold">Save</button>
                             </form>
                         </div>
@@ -427,7 +430,7 @@
         </div>
     </div>
 
-    {{-- ============================= EDIT QUIZ / EXAM MODAL ============================= --}}
+    {{-- ============================= EDIT QUIZ / EXAM MODAL (Feature 3) ============================= --}}
     <div class="modal fade" id="editAssessmentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
@@ -438,6 +441,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
+
                         <div class="mb-3">
                             <label class="form-label font-bold">Title</label>
                             <input type="text" name="title" id="edit-assessment-title" class="form-control" required>
@@ -446,6 +450,45 @@
                             <label class="form-label font-bold">Description <span class="text-muted fw-normal">(optional)</span></label>
                             <textarea name="description" id="edit-assessment-description" class="form-control" rows="2"></textarea>
                         </div>
+
+                        {{-- AI Regenerate section --}}
+                        <div class="border rounded p-3 mb-3" style="background:#f8f9ff;">
+                            <span class="badge bg-light text-primary fw-bold mb-2" style="font-size:11px;">
+                                <i class="bi bi-stars me-1"></i> AI ASSIST (EDITH)
+                            </span>
+                            <div class="row g-2 align-items-end">
+                                {{-- Topic dropdown — only shown for quizzes, hidden for exams via JS --}}
+                                <div class="col-md-4" id="edit-assessment-topic-wrapper">
+                                    <label class="form-label font-bold" style="font-size:13px;">Topic</label>
+                                    <select id="edit-assessment-topic" class="form-control">
+                                        <option value="">— Select a lesson topic —</option>
+                                        @foreach ($course->lessons as $lesson)
+                                            <option value="{{ $lesson->title }}">{{ $lesson->title }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label font-bold" style="font-size:13px;"># Questions</label>
+                                    <input type="number" id="edit-assessment-num-questions"
+                                           class="form-control" min="3" max="30" value="5">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label font-bold" style="font-size:13px;">Mode</label>
+                                    <select id="edit-assessment-gen-mode" class="form-control">
+                                        <option value="replace">Replace all questions</option>
+                                        <option value="append">Append to existing</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" class="btn btn-primary w-100 font-bold"
+                                            onclick="generateAssessmentForEdit()">
+                                        <i class="bi bi-stars me-1"></i> Generate
+                                    </button>
+                                </div>
+                            </div>
+                            <span id="edit-assessment-ai-status" class="text-muted d-block mt-1" style="font-size:12px;"></span>
+                        </div>
+
                         <hr>
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6 class="font-bold mb-0">Questions</h6>
@@ -458,7 +501,9 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary font-bold"><i class="bi bi-floppy me-1"></i> Save Changes</button>
+                        <button type="submit" class="btn btn-primary font-bold">
+                            <i class="bi bi-floppy me-1"></i> Save Changes
+                        </button>
                     </div>
                 </form>
             </div>
@@ -541,7 +586,6 @@
             modal.show();
         }
 
-        // Delegate click for lesson edit buttons (avoids inline JS with special chars)
         document.addEventListener('click', function (e) {
             const lessonBtn = e.target.closest('.lesson-edit-btn');
             if (lessonBtn) {
@@ -571,18 +615,32 @@
             }
         });
 
-        // ===================== EDIT QUIZ / EXAM MODAL =====================
+        // ===================== EDIT QUIZ / EXAM MODAL (Feature 3) =====================
+        let currentEditKind = 'quiz';
+
         function openAssessmentEditor(btn) {
-            const kind        = btn.dataset.kind;  // 'quiz' or 'exam'
+            const kind        = btn.dataset.kind;
             const title       = btn.dataset.title;
             const description = btn.dataset.description;
             const updateUrl   = btn.dataset.updateUrl;
             const questions   = JSON.parse(btn.dataset.questions);
 
-            document.getElementById('editAssessmentModalLabel').textContent = `Edit ${kind.charAt(0).toUpperCase() + kind.slice(1)}`;
+            currentEditKind = kind;
+
+            document.getElementById('editAssessmentModalLabel').textContent =
+                `Edit ${kind.charAt(0).toUpperCase() + kind.slice(1)}`;
             document.getElementById('edit-assessment-form').action = updateUrl;
             document.getElementById('edit-assessment-title').value = title;
             document.getElementById('edit-assessment-description').value = description;
+
+            // Show topic selector only for quizzes
+            const topicWrapper = document.getElementById('edit-assessment-topic-wrapper');
+            topicWrapper.style.display = kind === 'quiz' ? '' : 'none';
+
+            // Adjust question count limits
+            const numInput = document.getElementById('edit-assessment-num-questions');
+            numInput.max   = kind === 'exam' ? 30 : 15;
+            numInput.value = kind === 'exam' ? 20 : 5;
 
             // Reset and populate questions
             const containerId = 'edit-assessment-questions-container';
@@ -608,13 +666,86 @@
                 }
             });
 
+            // Clear AI status
+            document.getElementById('edit-assessment-ai-status').textContent = '';
+
             const modal = new bootstrap.Modal(document.getElementById('editAssessmentModal'));
             modal.show();
         }
 
+        // AI Generate inside Edit modal
+        async function generateAssessmentForEdit() {
+            const status       = document.getElementById('edit-assessment-ai-status');
+            const numQuestions = document.getElementById('edit-assessment-num-questions').value || 5;
+            const mode         = document.getElementById('edit-assessment-gen-mode').value;
+            const containerId  = 'edit-assessment-questions-container';
+
+            let topic = '';
+            if (currentEditKind === 'quiz') {
+                const topicSelect = document.getElementById('edit-assessment-topic');
+                topic = topicSelect ? topicSelect.value.trim() : '';
+                if (!topic) { status.textContent = 'Select a topic first.'; return; }
+            }
+
+            status.textContent = 'Generating with EDITH...';
+
+            try {
+                const payload = { kind: currentEditKind, num_questions: numQuestions };
+                if (topic) payload.topic = topic;
+
+                const res = await fetch('{{ route('teacher.courses.ai.assessment', $course->course_id) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken(),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                const result = await res.json();
+                if (!result.success) { status.textContent = result.message || 'Generation failed.'; return; }
+
+                const data = result.data;
+
+                if (mode === 'replace') {
+                    resetQuestions(containerId);
+                    if (data.title) document.getElementById('edit-assessment-title').value = data.title;
+                }
+
+                (data.questions || []).forEach(q => {
+                    const row = addQuestionRow(containerId);
+                    row.querySelector('.q-text').value   = q.question_text || '';
+                    row.querySelector('.q-points').value = q.points || 1;
+                    const typeSelect = row.querySelector('.q-type');
+                    typeSelect.value = q.question_type === 'open_ended' ? 'open_ended' : 'multiple_choice';
+                    toggleQuestionType(typeSelect);
+
+                    if (typeSelect.value === 'multiple_choice') {
+                        const choiceInputs = row.querySelectorAll('.choice-text');
+                        const radios       = row.querySelectorAll('.q-correct-radio');
+                        (q.choices || []).forEach((choice, j) => {
+                            if (choiceInputs[j]) choiceInputs[j].value = choice.choice_text || '';
+                            if (choice.is_correct && radios[j]) radios[j].checked = true;
+                        });
+                    } else {
+                        row.querySelector('.model-answer').value = q.correct_answer || '';
+                    }
+                });
+
+                const count = data.questions?.length || 0;
+                status.textContent = mode === 'replace'
+                    ? `Replaced with ${count} new questions. Review and Save.`
+                    : `Appended ${count} questions. Review and Save.`;
+
+            } catch (e) {
+                status.textContent = 'Something went wrong reaching EDITH.';
+            }
+        }
+
         async function generateLessonContentFromEditor() {
-            const title  = document.getElementById('editor-lesson-title-input').value.trim();
-            const status = document.getElementById('editor-status');
+            const title    = document.getElementById('editor-lesson-title-input').value.trim();
+            const status   = document.getElementById('editor-status');
             const textarea = document.getElementById('editor-content');
             if (!title) { status.textContent = 'Enter a title first.'; return; }
 
@@ -638,7 +769,7 @@
         // ===================== EDIT ACTIVITY MODAL =====================
         function openActivityEditor(moduleId, title, content, activityType, points, dueAt) {
             const baseUrl = '{{ url('teacher/courses/' . $course->course_id . '/modules') }}';
-            document.getElementById('edit-activity-form').action = `${baseUrl}/${moduleId}`;
+            document.getElementById('edit-activity-form').action  = `${baseUrl}/${moduleId}`;
             document.getElementById('edit-activity-title').value  = title;
             document.getElementById('edit-activity-content').value = content || '';
             document.getElementById('edit-activity-type').value   = activityType;
@@ -688,8 +819,8 @@
                 const result = await res.json();
                 if (!result.success) { status.textContent = result.message || 'Generation failed.'; return; }
                 const data = result.data;
-                document.getElementById('new-activity-title').value = data.title || '';
-                document.getElementById('new-activity-type').value  = data.activity_type || 'assignment';
+                document.getElementById('new-activity-title').value   = data.title || '';
+                document.getElementById('new-activity-type').value    = data.activity_type || 'assignment';
                 document.getElementById('new-activity-content').value = data.content || '';
                 document.getElementById('new-activity-points').value  = data.points || 10;
                 document.getElementById('new-activity-ai-generated').value = '1';
@@ -711,9 +842,9 @@
             const i = questionIndexByContainer[containerId] = (questionIndexByContainer[containerId] || 0);
             questionIndexByContainer[containerId] = i + 1;
 
-            row.querySelector('.q-text').name    = `questions[${i}][question_text]`;
-            row.querySelector('.q-type').name    = `questions[${i}][question_type]`;
-            row.querySelector('.q-points').name  = `questions[${i}][points]`;
+            row.querySelector('.q-text').name       = `questions[${i}][question_text]`;
+            row.querySelector('.q-type').name       = `questions[${i}][question_type]`;
+            row.querySelector('.q-points').name     = `questions[${i}][points]`;
             row.querySelector('.model-answer').name = `questions[${i}][correct_answer]`;
 
             row.querySelectorAll('.q-correct-radio').forEach((radio, j) => {
@@ -741,19 +872,18 @@
         }
 
         async function generateAssessment(kind) {
-            const prefix = kind; // 'quiz' or 'exam'
-            const status = document.getElementById(`new-${prefix}-status`);
+            const prefix       = kind;
+            const status       = document.getElementById(`new-${prefix}-status`);
             const numQuestions = document.getElementById(`new-${prefix}-num-questions`).value || 5;
 
-            // Quiz needs a specific topic. Exam covers ALL topics — no topic input needed.
             let topic = '';
             if (kind === 'quiz') {
                 const topicInput = document.getElementById(`new-${prefix}-topic`);
                 topic = topicInput ? topicInput.value.trim() : '';
-                if (!topic) { status.textContent = 'Enter a topic first.'; return; }
+                if (!topic) { status.textContent = 'Select a topic first.'; return; }
             }
 
-            status.textContent = 'Generating with AI...';
+            status.textContent = 'Generating with EDITH...';
 
             try {
                 const payload = { kind: kind, num_questions: numQuestions };
@@ -772,7 +902,7 @@
                 const result = await res.json();
                 if (!result.success) { status.textContent = result.message || 'Generation failed.'; return; }
 
-                const data = result.data;
+                const data        = result.data;
                 const containerId = `${kind}-questions-container`;
                 document.getElementById(`new-${kind}-title`).value = data.title || '';
                 resetQuestions(containerId);

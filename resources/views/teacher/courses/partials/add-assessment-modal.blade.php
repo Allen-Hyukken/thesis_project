@@ -23,14 +23,25 @@
                         </span>
 
                         @if ($kind === 'quiz')
-                            {{-- Quiz: teacher picks a specific topic --}}
+                            {{-- Quiz: teacher picks from actual lesson topics --}}
                             <div class="row g-2 align-items-end">
                                 <div class="col-md-6">
                                     <label class="form-label font-bold" style="font-size:13px;">Topic</label>
-                                    <input type="text"
-                                           id="new-{{ $kind }}-topic"
-                                           class="form-control"
-                                           placeholder="e.g. Binary Search Trees">
+                                    @if (isset($course) && $course->lessons->count())
+                                        <select id="new-{{ $kind }}-topic" class="form-control">
+                                            <option value="">— Select a lesson topic —</option>
+                                            @foreach ($course->lessons as $lesson)
+                                                <option value="{{ $lesson->title }}">{{ $lesson->title }}</option>
+                                            @endforeach
+                                        </select>
+                                        <small class="text-muted">Quiz questions will be based on the selected lesson.</small>
+                                    @else
+                                        <input type="text"
+                                               id="new-{{ $kind }}-topic"
+                                               class="form-control"
+                                               placeholder="No lessons yet — type a topic manually">
+                                        <small class="text-muted text-warning">Add lessons first to enable topic selection.</small>
+                                    @endif
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label font-bold" style="font-size:13px;"># Questions</label>

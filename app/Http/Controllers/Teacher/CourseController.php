@@ -13,6 +13,51 @@ class CourseController extends Controller
 {
     use AuthorizesCourseOwner;
 
+    public function trash()
+    {
+        $teacherId = Auth::id();
+        $courses   = Course::onlyTrashed()
+            ->where('teacher_id', $teacherId)
+            ->latest('deleted_at')
+            ->get();
+
+        return view('teacher.courses.trash', compact('courses'));
+    }
+
+    public function softDelete(Course $course)
+    {
+        if ((int) $course->teacher_id !== (int) Auth::id()) abort(403);
+
+        $course->delete(); // soft delete — sets deleted_at
+
+        // Redirect completely back to the main courses list view instead of reloading the deleted page
+        return redirect()->route('teacher.courses')->with('success', 'Course moved to trash.');
+    }
+
+    public function restore(int $id)
+    {
+        $course = Course::onlyTrashed()
+            ->where('course_id', $id)
+            ->where('teacher_id', Auth::id())
+            ->firstOrFail();
+
+        $course->restore();
+
+        return back()->with('success', 'Course restored.');
+    }
+
+    public function forceDelete(int $id)
+    {
+        $course = Course::onlyTrashed()
+            ->where('course_id', $id)
+            ->where('teacher_id', Auth::id())
+            ->firstOrFail();
+
+        $course->forceDelete(); // permanent
+
+        return back()->with('success', 'Course permanently deleted.');
+    }
+
     public function index()
     {
         $courses = Course::where('teacher_id', Auth::id())
