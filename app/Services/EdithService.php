@@ -27,7 +27,6 @@ class EdithService
     // ---------------------------------------------------------------
     protected array $models = [
         'gemini-2.5-flash',
-        'gemini-2.5-flash-lite-preview-06-17',
         'gemini-2.0-flash',
         'gemini-2.0-flash-lite',
     ];
@@ -401,12 +400,95 @@ PROMPT;
             }
 
             // --- Other HTTP errors → throw immediately (not a quota issue) ---
+            // -------------------------------------------------------
+// Invalid/retired model (404)
+// Skip this model and continue rotation.
+// -------------------------------------------------------
+            if ($response->status() === 404) {
+
+                Log::warning('EDITH: Model unavailable. Skipping model.', [
+                    'key_index'   => $keyIndex,
+                    'model_index' => $modelIndex,
+                    'model'       => $model,
+                ]);
+
+                $state = $this->markExhausted(
+                    $state,
+                    $keyIndex,
+                    $modelIndex,
+                    $totalKeys,
+                    $totalModels
+                );
+
+                Cache::store('file')->put(
+                    $this->cacheKey,
+                    $state,
+                    $this->cacheTtl
+                );
+
+                $attempts++;
+                continue;
+            }
+
+// -------------------------------------------------------
+// Invalid API key
+// Skip current key/model.
+// -------------------------------------------------------
+            if ($response->status() === 401 || $response->status() === 403) {
+
+                Log::warning('EDITH: API key rejected. Skipping.', [
+                    'key_index'   => $keyIndex,
+                    'model_index' => $modelIndex,
+                    'model'       => $model,
+                    'status'      => $response->status(),
+                ]);
+
+                $state = $this->markExhausted(
+                    $state,
+                    $keyIndex,
+                    $modelIndex,
+                    $totalKeys,
+                    $totalModels
+                );
+
+                Cache::store('file')->put(
+                    $this->cacheKey,
+                    $state,
+                    $this->cacheTtl
+                );
+
+                $attempts++;
+                continue;
+            }
+
+// -------------------------------------------------------
+// Temporary Google server errors
+// Don't rotate immediately.
+// -------------------------------------------------------
+            if (in_array($response->status(), [500, 502, 503, 504])) {
+
+                Log::warning('EDITH: Temporary Gemini server error.', [
+                    'status' => $response->status(),
+                    'model'  => $model,
+                ]);
+
+                sleep(2);
+                continue;
+            }
+
+// -------------------------------------------------------
+// Any other HTTP error
+// -------------------------------------------------------
             if ($response->failed()) {
+
                 Log::error('EDITH: API request failed', [
                     'status' => $response->status(),
                     'body'   => $response->body(),
                 ]);
-                throw new RuntimeException('EDITH: Gemini API request failed: ' . $response->body());
+
+                throw new RuntimeException(
+                    'EDITH: Gemini API request failed: ' . $response->body()
+                );
             }
 
             // --- Success ---
