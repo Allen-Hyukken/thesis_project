@@ -350,7 +350,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             <h5 class="modal-title font-bold mb-0" id="editor-lesson-title-display">Edit Lesson</h5>
                             <span id="editor-status" class="text-muted ms-2" style="font-size:12px;"></span>
-                            <div class="ms-auto d-flex gap-2">
+                            <div class="ms-auto d-flex gap-2 align-items-center">
                                 <button type="button" class="btn btn-outline-primary btn-sm font-bold"
                                         onclick="generateLessonContentFromEditor()">
                                     <i class="bi bi-stars me-1"></i> Regenerate with AI
@@ -362,19 +362,34 @@
                         </div>
                     </div>
 
-                    <div class="modal-body p-0 d-flex flex-column" style="height:calc(100vh - 60px);">
-                        <div class="px-4 pt-3 pb-2" style="background:#fff; border-bottom:1px solid #eee;">
-                            <label class="form-label font-bold mb-1" style="font-size:13px;">Lesson Title</label>
-                            <input type="text" name="title" id="editor-lesson-title-input"
-                                   class="form-control" style="max-width:600px;" required>
-                        </div>
-                        <div class="flex-grow-1 p-4 d-flex flex-column" style="min-height:0;">
-                            <label class="form-label font-bold mb-1" style="font-size:13px;">Content</label>
+                    {{-- Title row --}}
+                    <div class="px-4 pt-3 pb-2" style="background:#fff; border-bottom:1px solid #eee;">
+                        <label class="form-label font-bold mb-1" style="font-size:13px;">Lesson Title</label>
+                        <input type="text" name="title" id="editor-lesson-title-input"
+                               class="form-control" style="max-width:600px;" required>
+                    </div>
+
+                    {{-- Split edit / preview --}}
+                    <div class="modal-body p-0 d-flex" style="height:calc(100vh - 120px); overflow:hidden;">
+
+                        {{-- Left: editor --}}
+                        <div class="editor-split-pane d-flex flex-column" style="flex:1; min-width:0;">
+                            <div class="editor-preview-label">✏️ Markdown Editor</div>
                             <textarea name="content" id="editor-content"
-                                      class="form-control flex-grow-1"
-                                      style="resize:none; font-size:14px; line-height:1.7; font-family:inherit;"
+                                      class="flex-grow-1 border-0 p-3"
+                                      style="resize:none; font-size:13.5px; line-height:1.7;
+                                             font-family:'SFMono-Regular',Consolas,monospace;
+                                             outline:none; overflow-y:auto;"
+                                      oninput="syncEditorPreview()"
                                       required></textarea>
                         </div>
+
+                        {{-- Right: live preview --}}
+                        <div class="editor-split-pane d-flex flex-column" style="flex:1; min-width:0; border-left:1px solid #dee2e6;">
+                            <div class="editor-preview-label">👁 Preview (as students see it)</div>
+                            <div id="editor-preview" class="editor-preview-box edith-content"></div>
+                        </div>
+
                     </div>
                 </form>
             </div>
@@ -761,6 +776,7 @@
                 textarea.value = result.data.content || '';
                 document.getElementById('editor-ai-generated').value = '1';
                 status.textContent = 'Draft generated — edit as needed, then Save.';
+                syncEditorPreview();
             } catch (e) {
                 status.textContent = 'Something went wrong reaching the AI service.';
             }
@@ -933,5 +949,95 @@
                 status.textContent = 'Something went wrong reaching the AI service.';
             }
         }
+
+        // ===================== MARKDOWN PREVIEW SYNC =====================
+        function syncEditorPreview() {
+            const raw = document.getElementById('editor-content').value;
+            const preview = document.getElementById('editor-preview');
+            if (preview && window.marked) {
+                preview.innerHTML = raw.trim() ? marked.parse(raw) : '<p class="text-muted fst-italic">Start typing to see a preview…</p>';
+            }
+        }
+
+        // Auto-sync when editor opens
+        const lessonEditorModal = document.getElementById('lessonEditorModal');
+        if (lessonEditorModal) {
+            lessonEditorModal.addEventListener('shown.bs.modal', function () {
+                syncEditorPreview();
+            });
+        }
+
+        // After AI generation, sync preview automatically
+        const _origGenerateFromEditor = generateLessonContentFromEditor;
+        // (preview sync is already called via oninput; AI fills the textarea then we trigger it)
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"
+            onload="marked.setOptions({breaks:true,gfm:true})"></script>
+@endpush
+
+@push('styles')
+    <style>
+        /* ── Shared EDITH content styles (teacher preview + student view) ── */
+        .edith-content {
+            font-size: 14.5px;
+            line-height: 1.75;
+            color: #1a1a1a;
+        }
+        .edith-content h2 {
+            font-size: 15px; font-weight: 700;
+            margin: 1.4em 0 .5em; color: #111;
+            padding-bottom: 4px; border-bottom: 1px solid #f0f0f0;
+        }
+        .edith-content h3 { font-size: 14px; font-weight: 700; margin: 1.1em 0 .4em; color: #222; }
+        .edith-content p { margin: 0 0 .85em; }
+        .edith-content ul, .edith-content ol { padding-left: 1.5em; margin: 0 0 .85em; }
+        .edith-content li { margin-bottom: .3em; }
+        .edith-content li > ul, .edith-content li > ol { margin-top: .25em; }
+        .edith-content strong { font-weight: 700; color: #111; }
+        .edith-content em { color: #555; }
+        .edith-content code {
+            background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 4px;
+            padding: 1px 5px; font-size: 13px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace; color: #c7254e;
+        }
+        .edith-content pre {
+            background: #f6f8fa; border: 1px solid #e5e7eb; border-radius: 8px;
+            padding: 14px 16px; overflow-x: auto; margin-bottom: .85em;
+        }
+        .edith-content pre code { background: none; border: none; padding: 0; color: #24292e; font-size: 13px; }
+        .edith-content blockquote {
+            border-left: 3px solid #10a37f; background: #f0fdf8;
+            margin: 0 0 .85em; padding: 10px 16px;
+            border-radius: 0 6px 6px 0; color: #065f46; font-size: 13.5px;
+        }
+        .edith-content blockquote p { margin: 0; }
+        .edith-content table { width: 100%; border-collapse: collapse; margin-bottom: .85em; font-size: 13.5px; }
+        .edith-content th {
+            background: #f9fafb; font-weight: 700; text-align: left;
+            padding: 8px 12px; border: 1px solid #e5e7eb; color: #374151;
+        }
+        .edith-content td { padding: 7px 12px; border: 1px solid #e5e7eb; vertical-align: top; }
+        .edith-content tr:nth-child(even) td { background: #f9fafb; }
+        .edith-content hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.2em 0; }
+        .edith-content > h2:first-child { margin-top: 0; }
+
+        /* ── Split editor layout ── */
+        .editor-split-pane { display: flex; flex-direction: column; flex: 1; min-width: 0; overflow: hidden; }
+        .editor-preview-label {
+            padding: 7px 16px; background: #f8f9fa; border-bottom: 1px solid #dee2e6;
+            font-size: 11.5px; font-weight: 600; color: #6c757d;
+            letter-spacing: .05em; text-transform: uppercase; flex-shrink: 0;
+        }
+        .editor-preview-box {
+            flex: 1; overflow-y: auto;
+            padding: 20px 24px; background: #fff;
+        }
+
+        /* ── Lesson number badge (student view) ── */
+        .edith-lesson-num {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; background: #10a37f; color: #fff;
+            border-radius: 6px; font-size: 12px; font-weight: 700; flex-shrink: 0;
+        }
+    </style>
 @endpush

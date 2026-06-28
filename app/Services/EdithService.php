@@ -27,6 +27,7 @@ class EdithService
     // ---------------------------------------------------------------
     protected array $models = [
         'gemini-2.5-flash',
+        'gemini-2.5-flash-lite',
         'gemini-2.0-flash',
         'gemini-2.0-flash-lite',
     ];
@@ -73,7 +74,7 @@ PROMPT;
         $summary = $summary ?: 'No additional summary provided.';
 
         $prompt = <<<PROMPT
-You are EDITH, an AI writing college-level STUDY REVIEWER NOTES.
+You are EDITH, an AI writing college-level STUDY REVIEWER NOTES for students at a Philippine technological university.
 
 Course: {$courseTitle}
 Topic: {$moduleTitle}
@@ -81,29 +82,35 @@ Topic: {$moduleTitle}
 Context:
 {$summary}
 
-Write a complete reviewer lesson for students.
+Write a complete, well-structured reviewer lesson for students using clean Markdown formatting.
 
 REQUIREMENTS:
-- 600–800 words
-- Must be clear, detailed, and educational
-- Must help students understand AND prepare for exams
-- Must include explanations + examples
+- 600–800 words of actual content
+- Clear, detailed, and educational
+- Helps students understand AND prepare for exams
+- Includes explanations and examples
 
-STRUCTURE (use plain sections, no markdown):
-1. Definition of the topic
-2. Importance / real-world use
-3. Key concepts explained clearly
-4. Step-by-step explanation of how it works
-5. 1–2 practical examples
-6. Common mistakes students make
-7. Short exam focus section (what teachers usually ask)
+STRUCTURE — use these exact Markdown headings in order:
+## Definition
+## Why It Matters
+## Key Concepts
+## How It Works
+## Examples
+## Common Mistakes
+## Exam Focus
 
-STYLE:
-- Like lecture notes from a professor
-- Easy to understand but complete
-- No self-correction, no meta commentary
-- No JSON
-- No markdown code fences
+FORMATTING RULES:
+- Use ## for section headings (not # or ###)
+- Use **bold** for key terms on first use
+- Use bullet lists (- item) for grouped concepts or steps
+- Use numbered lists (1. step) for sequential procedures
+- Use `inline code` only for actual code, commands, or technical syntax
+- Use > blockquote for important notes or warnings
+- Tables are allowed when comparing concepts side by side
+- Keep paragraphs short (2–4 sentences max)
+- Do NOT include a top-level title (the topic title is already shown above the content)
+- Do NOT include any preamble, intro phrase, or closing like "I hope this helps"
+- Do NOT output JSON, code fences around the whole response, or meta-commentary
 PROMPT;
 
         $content = $this->callText($prompt);

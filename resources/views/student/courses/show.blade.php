@@ -76,10 +76,16 @@
         {{-- LESSONS --}}
         <div class="tab-pane fade show active" id="pane-lessons">
             @forelse ($course->lessons as $lesson)
-                <div class="card mb-2">
+                <div class="card mb-3 edith-lesson-card">
                     <div class="card-body">
-                        <h6 class="fw-bold mb-2">{{ $loop->iteration }}. {{ $lesson->title }}</h6>
-                        <p class="mb-0" style="white-space:pre-wrap;font-size:14px;">{{ $lesson->content }}</p>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="edith-lesson-num">{{ $loop->iteration }}</span>
+                            <h6 class="fw-bold mb-0">{{ $lesson->title }}</h6>
+                            @if ($lesson->ai_generated)
+                                <span class="badge bg-light text-primary border ms-1" style="font-size:10px;"><i class="bi bi-stars"></i> AI</span>
+                            @endif
+                        </div>
+                        <div class="edith-content" data-raw="{{ e($lesson->content) }}"></div>
                     </div>
                 </div>
             @empty
@@ -157,6 +163,170 @@
 
 @endsection
 
+@push('styles')
+    <style>
+        /* ── EDITH Lesson Card ─────────────────────────────────────────── */
+        .edith-lesson-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.06);
+        }
+        .edith-lesson-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px; height: 26px;
+            background: #10a37f;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ── Rendered Markdown (ChatGPT-style) ─────────────────────────── */
+        .edith-content {
+            font-size: 14.5px;
+            line-height: 1.75;
+            color: #1a1a1a;
+        }
+        .edith-content h2 {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 1.4em 0 .5em;
+            color: #111;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .edith-content h3 {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 1.1em 0 .4em;
+            color: #222;
+        }
+        .edith-content p {
+            margin: 0 0 .85em;
+        }
+        .edith-content ul, .edith-content ol {
+            padding-left: 1.5em;
+            margin: 0 0 .85em;
+        }
+        .edith-content li {
+            margin-bottom: .3em;
+        }
+        .edith-content li > ul, .edith-content li > ol {
+            margin-top: .25em;
+        }
+        .edith-content strong {
+            font-weight: 700;
+            color: #111;
+        }
+        .edith-content em {
+            color: #555;
+        }
+        .edith-content code {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 13px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+            color: #c7254e;
+        }
+        .edith-content pre {
+            background: #f6f8fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 14px 16px;
+            overflow-x: auto;
+            margin-bottom: .85em;
+        }
+        .edith-content pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            color: #24292e;
+            font-size: 13px;
+        }
+        .edith-content blockquote {
+            border-left: 3px solid #10a37f;
+            background: #f0fdf8;
+            margin: 0 0 .85em;
+            padding: 10px 16px;
+            border-radius: 0 6px 6px 0;
+            color: #065f46;
+            font-size: 13.5px;
+        }
+        .edith-content blockquote p { margin: 0; }
+        .edith-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: .85em;
+            font-size: 13.5px;
+        }
+        .edith-content th {
+            background: #f9fafb;
+            font-weight: 700;
+            text-align: left;
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            color: #374151;
+        }
+        .edith-content td {
+            padding: 7px 12px;
+            border: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+        .edith-content tr:nth-child(even) td { background: #f9fafb; }
+        .edith-content hr {
+            border: none;
+            border-top: 1px solid #e5e7eb;
+            margin: 1.2em 0;
+        }
+        /* First h2 gets no top margin */
+        .edith-content > h2:first-child { margin-top: 0; }
+
+        /* ── Lesson editor: split view ─────────────────────────────────── */
+        .editor-split { display: flex; gap: 0; height: 100%; }
+        .editor-split-pane { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .editor-split-pane + .editor-split-pane { border-left: 1px solid #dee2e6; }
+        .editor-preview-box {
+            flex: 1; overflow-y: auto;
+            padding: 20px 24px;
+            background: #fff;
+            font-size: 14.5px;
+        }
+        .editor-preview-label {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6c757d;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
+    </style>
+@endpush
+
 @push('scripts')
     @include('student.classes.partials.activity-scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <script>
+        // Render all .edith-content divs from their data-raw attribute
+        document.addEventListener('DOMContentLoaded', function () {
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+            });
+            document.querySelectorAll('.edith-content[data-raw]').forEach(function (el) {
+                const raw = el.getAttribute('data-raw');
+                if (raw && raw.trim()) {
+                    el.innerHTML = marked.parse(raw);
+                } else {
+                    el.innerHTML = '<p class="text-muted fst-italic">No content yet.</p>';
+                }
+            });
+        });
+    </script>
 @endpush
