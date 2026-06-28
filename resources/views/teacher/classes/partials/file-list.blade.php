@@ -1,7 +1,4 @@
-{{--
-    Shared file list with instant preview modal.
-    Required vars: $class, $materials, $role ('teacher'|'student')
---}}
+
 
 {{-- ── Preview Modal ──────────────────────────────────────────────── --}}
 <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-hidden="true">
@@ -174,7 +171,9 @@
                 });
             }
             function showLoader(show) {
-                document.getElementById('previewLoader').style.display = show ? 'flex' : 'none';
+                const loader = document.getElementById('previewLoader');
+                loader.classList.toggle('d-flex', show);
+                loader.classList.toggle('d-none', !show);
             }
 
             // ── Preview button click ─────────────────────────────────────────
@@ -208,9 +207,11 @@
 
                     if (isPdf) {
                         const iframe = document.getElementById('previewPdf');
-                        iframe.onload = () => showLoader(false);
+                        let loaded = false;
+                        iframe.onload = () => { loaded = true; showLoader(false); };
                         iframe.src = url;
                         iframe.style.display = 'block';
+                        setTimeout(() => { if (!loaded) showLoader(false); }, 1200);
 
                     } else if (isImage) {
                         const img = document.getElementById('previewImage');
@@ -237,9 +238,11 @@
                         // Use Google Docs Viewer for Office files
                         const iframe = document.getElementById('previewOffice');
                         const encoded = encodeURIComponent(window.location.origin + url);
-                        iframe.onload = () => showLoader(false);
+                        let loaded = false;
+                        iframe.onload = () => { loaded = true; showLoader(false); };
                         iframe.src = `https://docs.google.com/gviewer?url=${encoded}&embedded=true`;
                         iframe.style.display = 'block';
+                        setTimeout(() => { if (!loaded) showLoader(false); }, 1200);
 
                     } else {
                         showLoader(false);

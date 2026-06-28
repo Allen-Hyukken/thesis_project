@@ -174,7 +174,9 @@
                 });
             }
             function showLoader(show) {
-                document.getElementById('previewLoader').style.display = show ? 'flex' : 'none';
+                const loader = document.getElementById('previewLoader');
+                loader.classList.toggle('d-flex', show);
+                loader.classList.toggle('d-none', !show);
             }
 
             // ── Preview button click ─────────────────────────────────────────
