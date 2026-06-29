@@ -1,0 +1,256 @@
+/* ============================================================
+   Gradebook — self-contained modern layer
+   Does not depend on Bootstrap's accordion component.
+   ============================================================ */
+
+.gb2-empty{
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--surface-card, #fff);
+    border: 1px solid var(--surface-border, #e7eaf3);
+    border-radius: var(--radius-lg, 1.25rem);
+}
+.gb2-empty i{ font-size: 2.5rem; color: var(--ink-300, #aab1c2); display: block; margin-bottom: .75rem; }
+.gb2-empty h5{ font-weight: 700; color: var(--ink-900, #1c2433); margin-bottom: .35rem; }
+.gb2-empty p{ color: var(--ink-500, #6b7385); margin: 0; }
+
+.gb2-courses{ display: flex; flex-direction: column; gap: 1rem; }
+
+/* ---------- Course section ---------- */
+.gb2-course{
+    background: var(--surface-card, #fff);
+    border: 1px solid var(--surface-border, #e7eaf3);
+    border-radius: var(--radius-lg, 1.25rem);
+    overflow: hidden;
+}
+.gb2-course-head{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: 1.1rem 1.4rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+}
+.gb2-chevron{
+    color: var(--ink-300, #aab1c2);
+    transition: transform .18s ease;
+    flex-shrink: 0;
+}
+.gb2-course.is-open .gb2-chevron{ transform: rotate(90deg); }
+.gb2-course-title{
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--ink-900, #1c2433);
+    flex-shrink: 0;
+}
+.gb2-progress-wrap{
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    margin-left: auto;
+    width: 220px;
+}
+.gb2-progress{
+    flex: 1;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--surface, #f6f8fc);
+    overflow: hidden;
+}
+.gb2-progress-fill{
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--tup-primary, #435ebe), var(--tup-primary-dark, #34488f));
+    transition: width .3s ease;
+}
+.gb2-progress-label{
+    font-size: .76rem;
+    font-weight: 600;
+    color: var(--ink-500, #6b7385);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.gb2-course-body{
+    display: none;
+    padding: 0 1.4rem 1.4rem;
+    border-top: 1px solid var(--surface-border, #e7eaf3);
+}
+.gb2-course.is-open .gb2-course-body{ display: block; padding-top: 1rem; }
+.gb2-muted{ color: var(--ink-500, #6b7385); font-size: .88rem; margin: .5rem 0; }
+
+/* ---------- Item row (activity / quiz / exam) ---------- */
+.gb2-item{
+    border: 1px solid var(--surface-border, #e7eaf3);
+    border-radius: var(--radius-md, .9rem);
+    margin-bottom: .65rem;
+    overflow: hidden;
+}
+.gb2-item:last-child{ margin-bottom: 0; }
+.gb2-item-head{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .85rem 1rem;
+    background: var(--surface, #f6f8fc);
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+}
+.gb2-chevron-sm{
+    font-size: .8rem;
+    color: var(--ink-300, #aab1c2);
+    transition: transform .18s ease;
+    flex-shrink: 0;
+}
+.gb2-item.is-open .gb2-chevron-sm{ transform: rotate(90deg); }
+.gb2-item-icon{ color: var(--tup-primary, #435ebe); flex-shrink: 0; }
+.gb2-item-title{
+    font-weight: 600;
+    font-size: .9rem;
+    color: var(--ink-900, #1c2433);
+}
+.gb2-item-type{
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--ink-300, #aab1c2);
+}
+.gb2-item-status{
+    margin-left: auto;
+    font-size: .76rem;
+    font-weight: 700;
+    padding: .25rem .7rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+.gb2-item-status.is-pending{ background: var(--tup-warning-light, #fff6e6); color: var(--tup-warning, #d97706); }
+.gb2-item-status.is-done{ background: var(--tup-success-light, #e9f9ef); color: var(--tup-success, #16a34a); }
+.gb2-item-status.is-empty{ background: var(--surface-border, #e7eaf3); color: var(--ink-500, #6b7385); }
+.gb2-item-body{
+    display: none;
+    padding: 1rem;
+}
+.gb2-item.is-open .gb2-item-body{ display: block; }
+
+/* ---------- Shared submission card (used by quiz/exam partial; activity partial defines its own copy too) ---------- */
+.tac-gb-card{
+    border-radius: 10px;
+    border: 1px solid var(--surface-border, #dfe3e7);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: var(--surface-card, #fff);
+}
+.tac-gb-graded{ border-left: 4px solid var(--tup-success, #4fbe87); }
+.tac-gb-pending{ border-left: 4px solid var(--tup-warning, #f6c23e); }
+.tac-gb-student-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.tac-gb-response{ margin-top: 8px; }
+.tac-gb-section-label{
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--ink-500, #6c757d);
+    margin-bottom: 4px;
+}
+
+/* ---------- Quiz/exam answer review blocks ---------- */
+.gb2-answer-block{
+    border: 1px solid var(--surface-border, #e7eaf3);
+    border-radius: .6rem;
+    padding: .75rem .9rem;
+    margin-bottom: .6rem;
+}
+.gb2-answer-block:last-child{ margin-bottom: 0; }
+.gb2-answer-question{
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--ink-900, #1c2433);
+    margin-bottom: .4rem;
+}
+.gb2-answer-summary{ display: flex; flex-direction: column; gap: .4rem; }
+.gb2-answer-row{
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: .83rem;
+    color: var(--ink-700, #3a4356);
+    padding: .3rem 0;
+    border-bottom: 1px solid var(--surface-border, #e7eaf3);
+}
+.gb2-answer-row:last-child{ border-bottom: none; }
+.gb2-answer-row span:last-child{ font-weight: 700; flex-shrink: 0; }
+
+@media (max-width: 768px){
+    .gb2-progress-wrap{ width: 120px; }
+    .gb2-course-title{ font-size: .9rem; }
+}
+/* ---------- Overview chart card ---------- */
+.gb2-overview-card{
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    background: var(--surface-card, #fff);
+    border: 1px solid var(--surface-border, #e7eaf3);
+    border-radius: var(--radius-lg, 1.25rem);
+    padding: 1.5rem 1.75rem;
+}
+.gb2-overview-chart-wrap{
+    position: relative;
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+}
+.gb2-overview-center{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.gb2-overview-number{ font-size: 1.6rem; font-weight: 800; color: var(--ink-900, #1c2433); line-height: 1; }
+.gb2-overview-label{ font-size: .72rem; color: var(--ink-500, #6b7385); text-transform: uppercase; letter-spacing: .05em; }
+.gb2-overview-legend{ display: flex; flex-direction: column; gap: .6rem; }
+.gb2-legend-row{
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-size: .9rem;
+    color: var(--ink-700, #3a4356);
+}
+.gb2-legend-row strong{ color: var(--ink-900, #1c2433); margin-left: .15rem; }
+.gb2-legend-dot{ width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ---------- Per-course mini chart ---------- */
+.gb2-course-chart-row{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .85rem 1rem;
+    background: var(--surface, #f6f8fc);
+    border-radius: var(--radius-md, .9rem);
+}
+.gb2-course-chart-legend{
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem 1rem;
+    font-size: .8rem;
+    color: var(--ink-700, #3a4356);
+}
+.gb2-course-chart-legend span{ display: flex; align-items: center; gap: .4rem; }
+
+@media (max-width: 576px){
+    .gb2-overview-card{ flex-direction: column; text-align: center; }
+}

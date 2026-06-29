@@ -1,16 +1,13 @@
 {{--
-    Teacher gradebook — quiz/exam submissions panel (shared).
-    Required: $assessment (Quiz|Exam), $subs (Collection), $type ('quiz'|'exam')
+    Teacher gradebook — activity submissions panel.
+    Required: $activity (course module model), $subs (Collection)
 --}}
-@php
-    $gradeRoute = 'teacher.gradebook.' . $type . '-answers.grade';
-@endphp
 
 <div class="gb2-sub-list">
     @forelse ($subs as $sub)
-        @php $needsReview = $sub->needsReview(); @endphp
+        @php $graded = $sub->isGraded(); @endphp
 
-        <div class="tac-gb-card {{ $needsReview ? 'tac-gb-pending' : 'tac-gb-graded' }}">
+        <div class="tac-gb-card {{ $graded ? 'tac-gb-graded' : 'tac-gb-pending' }}">
 
             <div class="tac-gb-student-row">
                 <div class="d-flex align-items-center gap-2">
@@ -26,54 +23,48 @@
                     <div>
                         <div class="fw-semibold" style="font-size:14px;color:#25396f;">{{ $sub->student->full_name }}</div>
                         <div class="text-muted" style="font-size:11px;">
-                            {{ $sub->answers->count() }} question{{ $sub->answers->count() === 1 ? '' : 's' }}
+                            Submitted {{ $sub->submitted_at ? $sub->submitted_at->diffForHumans() : '—' }}
                         </div>
                     </div>
                 </div>
                 <div>
-                    @if ($needsReview)
-                        <span class="badge bg-warning text-dark">Needs review</span>
+                    @if ($graded)
+                        <span class="badge bg-success fs-6">{{ $sub->score }}/{{ $activity->points }}</span>
                     @else
-                        <span class="badge bg-success fs-6">{{ $sub->score }}/{{ $sub->max_score }}</span>
+                        <span class="badge bg-warning text-dark">Needs grading</span>
                     @endif
                 </div>
             </div>
 
-            @if ($needsReview)
-                <div class="tac-gb-response">
-                    <div class="tac-gb-section-label">Open-ended answers awaiting review</div>
-                    @foreach ($sub->answers as $answer)
-                        @continue(! ($answer->is_correct === null && $answer->points_earned === null))
-                        <div class="gb2-answer-block">
-                            <p class="gb2-answer-question">{{ $answer->question->question_text }}</p>
-                            <div class="tac-text-bubble mb-2">{{ $answer->answer_text }}</div>
-                            <form action="{{ route($gradeRoute, $answer->answer_id) }}" method="POST" class="d-flex gap-2 align-items-center">
-                                @csrf
-                                <input type="number" name="points_earned"
-                                       min="0" max="{{ $answer->question->points }}" step="0.01"
-                                       class="form-control form-control-sm" style="width:80px;"
-                                       placeholder="Pts" required>
-                                <span class="text-muted" style="font-size:13px;">/ {{ $answer->question->points }} pts</span>
-                                <button type="submit" class="btn btn-sm btn-primary ms-auto">Save</button>
-                            </form>
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="tac-gb-response">
-                    <div class="tac-gb-section-label">Score breakdown</div>
-                    <div class="gb2-answer-summary">
-                        @foreach ($sub->answers as $answer)
-                            <div class="gb2-answer-row">
-                                <span>{{ \Illuminate\Support\Str::limit($answer->question->question_text, 70) }}</span>
-                                <span class="{{ $answer->is_correct ? 'text-success' : ($answer->points_earned > 0 ? 'text-warning' : 'text-danger') }}">
-                                    {{ $answer->points_earned ?? 0 }}/{{ $answer->question->points }}
-                                </span>
-                            </div>
-                        @endforeach
+            <div class="tac-gb-response">
+                @if ($sub->submission_text)
+                    <div class="tac-gb-section-label">Submission</div>
+                    <div class="tac-text-bubble mb-2">{{ $sub->submission_text }}</div>
+                @endif
+
+                @if ($sub->file_path)
+                    <div class="mb-2">
+                        <a href="{{ Storage::url($sub->file_path) }}" target="_blank"
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-paperclip"></i> {{ $sub->file_original_name }}
+                        </a>
                     </div>
-                </div>
-            @endif
+                @endif
+
+                <form action="{{ route('teacher.gradebook.activities.grade', $sub->submission_id) }}" method="POST">
+                    @csrf
+                    <div class="d-flex gap-2 align-items-center mb-2">
+                        <input type="number" name="score"
+                               min="0" max="{{ $activity->points }}" step="0.01"
+                               value="{{ $sub->score }}"
+                               class="form-control form-control-sm" style="width:80px;" required>
+                        <span class="text-muted" style="font-size:13px;">/ {{ $activity->points }} pts</span>
+                    </div>
+                    <textarea name="feedback" class="form-control form-control-sm mb-2"
+                              rows="2" placeholder="Feedback (optional)">{{ $sub->feedback }}</textarea>
+                    <button type="submit" class="btn btn-sm btn-primary w-100">Save Grade</button>
+                </form>
+            </div>
 
         </div>
     @empty
