@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('title', 'My Profile')
@@ -32,10 +31,16 @@
         <div class="col-12 col-lg-4">
             <div class="card">
                 <div class="card-body text-center py-5">
-                    <div class="mx-auto mb-3" style="width:100px;height:100px;">
+                    <div class="mx-auto mb-3" style="width:100px;height:100px;position:relative;">
                         @if ($user->avatar)
-                            <img src="{{ asset('storage/' . $user->avatar) }}" alt="Avatar"
-                                 class="rounded-circle w-100 h-100" style="object-fit:cover;">
+                            <img src="{{ $user->avatar }}" alt="Avatar"
+                                 class="rounded-circle w-100 h-100"
+                                 style="object-fit:cover;object-position:top center;"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                            <span class="d-none align-items-center justify-content-center w-100 h-100 rounded-circle bg-danger text-white fw-bold"
+                                  style="font-size:36px;position:absolute;top:0;left:0;">
+                                {{ strtoupper(substr($user->full_name, 0, 1)) }}
+                            </span>
                         @else
                             <span class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle bg-danger text-white fw-bold" style="font-size:36px;">
                                 {{ strtoupper(substr($user->full_name, 0, 1)) }}

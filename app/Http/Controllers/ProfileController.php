@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -13,10 +12,6 @@ class ProfileController extends Controller
         return view('profile.show', ['user' => auth()->user(), 'isOwnProfile' => true]);
     }
 
-    /**
-     * View someone else's profile — read-only, no Edit button.
-     * Reuses the same view as show().
-     */
     public function showUser(User $user)
     {
         if ((int) $user->user_id === (int) auth()->id()) {
@@ -38,7 +33,7 @@ class ProfileController extends Controller
         $rules = [
             'full_name' => 'required|string|max:255',
             'bio'       => 'nullable|string|max:1000',
-            'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            'avatar'    => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ];
 
         if ($user->role === 'student') {
@@ -51,11 +46,15 @@ class ProfileController extends Controller
 
         $validated = $request->validate($rules);
 
+        // Convert uploaded image to base64 data URI and store directly in DB
         if ($request->hasFile('avatar')) {
-            if ($user->avatar) {
-                Storage::disk('public')->delete($user->avatar);
-            }
-            $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            $file   = $request->file('avatar');
+            $mime   = $file->getMimeType();
+            $b64    = base64_encode(file_get_contents($file->getRealPath()));
+            $validated['avatar'] = 'data:' . $mime . ';base64,' . $b64;
+        } else {
+            // No new file — don't touch existing avatar
+            unset($validated['avatar']);
         }
 
         $user->update($validated);

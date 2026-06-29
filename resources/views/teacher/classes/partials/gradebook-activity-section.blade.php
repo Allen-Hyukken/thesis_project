@@ -43,7 +43,7 @@
             <div class="tac-gb-student-row">
                 <div class="d-flex align-items-center gap-2">
                     @if ($sub->student->avatar)
-                        <img src="{{ asset('storage/' . $sub->student->avatar) }}"
+                        <img src="{{ $sub->student->avatar }}"
                              class="rounded-circle" style="width:34px;height:34px;object-fit:cover;">
                     @else
                         <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"

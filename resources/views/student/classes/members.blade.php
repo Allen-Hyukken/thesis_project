@@ -38,7 +38,7 @@
                            class="d-flex align-items-center gap-3 text-decoration-none text-reset">
                             <div class="avatar avatar-md">
                                 @if ($class->teacher->avatar)
-                                    <img src="{{ asset('storage/' . $class->teacher->avatar) }}"
+                                    <img src="{{ $class->teacher->avatar }}"
                                          alt="{{ $class->teacher->full_name }}"
                                          class="avatar-content rounded-circle"
                                          style="object-fit:cover; width:40px; height:40px;">
@@ -66,7 +66,7 @@
                                class="d-flex align-items-center gap-3 text-decoration-none text-reset">
                                 <div class="avatar avatar-md">
                                     @if ($enrollment->student->avatar)
-                                        <img src="{{ asset('storage/' . $enrollment->student->avatar) }}"
+                                        <img src="{{ $enrollment->student->avatar }}"
                                              alt="{{ $enrollment->student->full_name }}"
                                              class="avatar-content rounded-circle"
                                              style="object-fit:cover; width:40px; height:40px;">

@@ -33,15 +33,16 @@
                 <div class="card mb-3">
                     <div class="card-body">
 
-                        <div class="mb-4 d-flex align-items-center">
-                            <div class="me-3" style="width:80px;height:80px;position:relative;">
+                        <div class="mb-4 d-flex align-items-center gap-3">
+                            <div style="width:88px;height:88px;position:relative;flex-shrink:0;">
                                 <img id="avatar-preview"
-                                     src="{{ $user->avatar ? asset('storage/' . $user->avatar) : '' }}"
+                                     src="{{ $user->avatar ?? '' }}"
                                      class="rounded-circle"
-                                     style="position:absolute;top:0;left:0;width:80px;height:80px;object-fit:cover;{{ $user->avatar ? '' : 'display:none;' }}">
+                                     style="width:88px;height:88px;object-fit:cover;object-position:top center;border:3px solid #e5e7eb;{{ $user->avatar ? '' : 'display:none;' }}"
+                                     onerror="this.style.display='none'; document.getElementById('avatar-placeholder').style.display='flex';">
                                 <span id="avatar-placeholder"
-                                      class="d-flex align-items-center justify-content-center rounded-circle bg-danger text-white fw-bold"
-                                      style="position:absolute;top:0;left:0;width:80px;height:80px;font-size:28px;{{ $user->avatar ? 'display:none;' : '' }}">
+                                      class="align-items-center justify-content-center rounded-circle bg-danger text-white fw-bold"
+                                      style="position:absolute;top:0;left:0;width:88px;height:88px;font-size:30px;display:{{ $user->avatar ? 'none' : 'flex' }};">
                                     {{ strtoupper(substr($user->full_name, 0, 1)) }}
                                 </span>
                             </div>
@@ -51,6 +52,9 @@
                                 </label>
                                 <input type="file" name="avatar" id="avatar" accept="image/png,image/jpeg" class="d-none" onchange="previewAvatar(this)">
                                 <p class="text-muted mb-0" style="font-size:12px;">JPG or PNG, max 5MB.</p>
+                                @if ($user->avatar)
+                                    <p class="text-success mb-0" style="font-size:11.5px;"><i class="bi bi-check-circle me-1"></i> Photo saved</p>
+                                @endif
                             </div>
                         </div>
 

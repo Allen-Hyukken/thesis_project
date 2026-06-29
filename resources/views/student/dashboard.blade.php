@@ -127,7 +127,7 @@
                     <div class="d-flex align-items-center mb-3">
                         <a href="{{ route('profile.show') }}" class="avatar avatar-xl me-3 text-decoration-none">
                             @if (auth()->user()->avatar)
-                                <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="Avatar"
+                                <img src="{{ auth()->user()->avatar }}" alt="Avatar"
                                      class="rounded-circle" style="object-fit:cover;">
                             @else
                                 <span class="avatar-content d-flex align-items-center justify-content-center rounded-circle bg-danger text-white fw-bold fs-4">
