@@ -138,6 +138,8 @@
     })();
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.5/sweetalert2.all.min.js"></script>
+
 @stack('scripts')
 </body>
 

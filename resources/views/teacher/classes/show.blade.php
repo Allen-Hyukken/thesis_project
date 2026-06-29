@@ -52,12 +52,13 @@
                             <a href="{{ route('teacher.courses.show', $course->course_id) }}" class="btn btn-outline-primary btn-sm flex-grow-1 font-bold">
                                 Manage
                             </a>
-                            <form action="{{ route('teacher.classes.courses.unpost', [$class->class_id, $course->course_id]) }}" method="POST"
-                                  onsubmit="return confirm('Remove this course from the class? Students will lose access.');">
+                            <form action="{{ route('teacher.classes.courses.unpost', [$class->class_id, $course->course_id]) }}"
+                                  method="POST" class="unpost-course-form">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-x-lg"></i>
+                                <input type="hidden" name="course_title" value="{{ $course->title }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm font-bold" style="white-space:nowrap;">
+                                    <i class="bi bi-x-lg me-1"></i> Remove
                                 </button>
                             </form>
                         </div>
@@ -78,5 +79,23 @@
     </div>
 
     @include('teacher.classes.partials.post-course-modal')
-
+    @push('scripts')
+        <script>
+            document.querySelectorAll('.unpost-course-form').forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const title = this.querySelector('[name="course_title"]').value;
+                    Swal.fire({
+                        title: 'Remove course?',
+                        text: `Remove "${title}" from this class? Students will lose access.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Yes, remove',
+                    }).then(r => { if (r.isConfirmed) this.submit(); });
+                });
+            });
+        </script>
+    @endpush
 @endsection

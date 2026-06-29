@@ -47,9 +47,9 @@
                     </form>
                     {{-- Permanently delete --}}
                     <form action="{{ route('teacher.courses.force-delete', $course->course_id) }}"
-                          method="POST"
-                          onsubmit="return confirm('Permanently delete {{ e($course->title) }}? This cannot be undone — all lessons, quizzes, and exams will be lost forever.')">
+                          method="POST" class="force-delete-course-form">
                         @csrf @method('DELETE')
+                        <input type="hidden" name="course_title" value="{{ $course->title }}">
                         <button type="submit" class="btn btn-sm btn-danger font-bold">
                             <i class="bi bi-trash me-1"></i> Delete Forever
                         </button>
@@ -65,5 +65,23 @@
             </div>
         </div>
     @endforelse
-
+    @push('scripts')
+        <script>
+            document.querySelectorAll('.force-delete-course-form').forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const title = this.querySelector('[name="course_title"]').value;
+                    Swal.fire({
+                        title: 'Permanently delete?',
+                        text: `"${title}" and all its lessons, quizzes, and exams will be lost forever. This cannot be undone.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Yes, delete forever',
+                    }).then(r => { if (r.isConfirmed) this.submit(); });
+                });
+            });
+        </script>
+    @endpush
 @endsection
