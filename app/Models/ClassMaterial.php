@@ -17,7 +17,7 @@ class ClassMaterial extends Model
         'teacher_id',
         'title',
         'original_filename',
-        'stored_path',
+        'file_data',
         'mime_type',
         'size_bytes',
     ];

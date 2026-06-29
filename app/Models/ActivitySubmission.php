@@ -16,11 +16,13 @@ class ActivitySubmission extends Model
         'module_id',
         'student_id',
         'submission_text',
-        'file_path',
+        'file_data',
         'file_original_name',
+        'file_mime_type',
         'score',
         'feedback',
         'status',
+        'submitted_at',
         'graded_at',
     ];
 

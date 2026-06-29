@@ -8,7 +8,6 @@ use App\Models\ClassMaterial;
 use App\Models\ClassRoom;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class ClassMaterialController extends Controller
 {
@@ -29,15 +28,14 @@ class ClassMaterialController extends Controller
             'file'  => 'required|file|max:51200',
         ]);
 
-        $file       = $request->file('file');
-        $storedPath = $file->store("class-materials/{$class->class_id}", 'local');
+        $file = $request->file('file');
 
         ClassMaterial::create([
             'class_id'          => $class->class_id,
             'teacher_id'        => Auth::id(),
             'title'             => $request->title,
             'original_filename' => $file->getClientOriginalName(),
-            'stored_path'       => $storedPath,
+            'file_data'         => 'data:' . $file->getMimeType() . ';base64,' . base64_encode(file_get_contents($file->getRealPath())),
             'mime_type'         => $file->getClientMimeType(),
             'size_bytes'        => $file->getSize(),
         ]);
@@ -46,26 +44,25 @@ class ClassMaterialController extends Controller
     }
 
     /**
-     * Stream file inline for in-browser preview (no forced download).
+     * Stream file inline for in-browser preview from DB base64.
      */
     public function preview(ClassRoom $class, ClassMaterial $material)
     {
         $this->authorizeMember($class);
 
-        if ((int) $material->class_id !== (int) $class->class_id) {
-            abort(404);
-        }
+        if ((int) $material->class_id !== (int) $class->class_id) abort(404);
+        if (!$material->file_data) abort(404, 'File not found.');
 
-        if (! Storage::disk('local')->exists($material->stored_path)) {
-            abort(404, 'File no longer exists.');
-        }
+        // Strip the data URI prefix and decode
+        $dataUri  = $material->file_data;
+        $base64   = preg_replace('/^data:[^;]+;base64,/', '', $dataUri);
+        $binary   = base64_decode($base64);
+        $mime     = $material->mime_type ?? 'application/octet-stream';
 
-        $mime = $material->mime_type ?? 'application/octet-stream';
-        $path = Storage::disk('local')->path($material->stored_path);
-
-        return response()->file($path, [
+        return response($binary, 200, [
             'Content-Type'        => $mime,
             'Content-Disposition' => 'inline; filename="' . $material->original_filename . '"',
+            'Content-Length'      => strlen($binary),
             'Cache-Control'       => 'private, max-age=3600',
         ]);
     }
@@ -74,26 +71,26 @@ class ClassMaterialController extends Controller
     {
         $this->authorizeMember($class);
 
-        if ((int) $material->class_id !== (int) $class->class_id) {
-            abort(404);
-        }
+        if ((int) $material->class_id !== (int) $class->class_id) abort(404);
+        if (!$material->file_data) abort(404, 'File not found.');
 
-        if (! Storage::disk('local')->exists($material->stored_path)) {
-            abort(404, 'File no longer exists.');
-        }
+        $base64 = preg_replace('/^data:[^;]+;base64,/', '', $material->file_data);
+        $binary = base64_decode($base64);
+        $mime   = $material->mime_type ?? 'application/octet-stream';
 
-        return Storage::disk('local')->download($material->stored_path, $material->original_filename);
+        return response($binary, 200, [
+            'Content-Type'              => $mime,
+            'Content-Disposition'       => 'attachment; filename="' . $material->original_filename . '"',
+            'Content-Length'            => strlen($binary),
+        ]);
     }
 
     public function destroy(ClassRoom $class, ClassMaterial $material)
     {
         $this->authorizeTeacher($class);
 
-        if ((int) $material->class_id !== (int) $class->class_id) {
-            abort(404);
-        }
+        if ((int) $material->class_id !== (int) $class->class_id) abort(404);
 
-        Storage::disk('local')->delete($material->stored_path);
         $material->delete();
 
         return back()->with('success', 'File removed.');
@@ -114,6 +111,6 @@ class ClassMaterialController extends Controller
             ->where('status', 'active')
             ->exists();
 
-        if (! $isMember) abort(403);
+        if (!$isMember) abort(403);
     }
 }

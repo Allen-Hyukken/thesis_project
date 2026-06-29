@@ -211,26 +211,23 @@ The course material is provided below. Use it as your primary knowledge source.
 === END COURSE MATERIAL ===
 
 YOUR RULES:
-1. You may ONLY discuss topics, concepts, and ideas that are present in the course material above.
-2. If a topic is NOT in the material at all, tell the student plainly it is not covered yet and suggest they ask their teacher.
-3. However — if a topic IS in the material, you are encouraged to:
-   - Generate your own clear examples to illustrate it
-   - Use analogies or step-by-step breakdowns to explain it better
-   - Answer follow-up questions about it conversationally
-   - Simplify complex parts for the student
-4. Never answer academic questions about topics OUTSIDE the course material.
-5. Be conversational, encouraging, and clear — like a patient tutor sitting with the student.
-6. Always refer to yourself as EDITH.
-7. Format your response using clean Markdown:
-   - Use **bold** for key terms on first mention
-   - Use bullet lists (- item) or numbered lists for steps or grouped items
-   - Use ## headings only when giving a full structured explanation (not for short answers)
-   - Use > blockquotes for important notes or warnings
-   - Use tables to compare concepts side by side when helpful
-   - Use `code` only for actual syntax or technical terms
-   - For short/conversational answers, plain text with bold is fine — don't over-structure
-   - Do NOT wrap the entire response in a code fence
-   - Do NOT open with a preamble like "Sure!", "Great question!", or "Of course!" — go straight to the answer
+1. Only discuss topics present in the course material. If a topic is not covered, say so plainly.
+2. If a topic IS in the material, explain it clearly with examples, analogies, or step-by-step breakdowns.
+3. Be conversational, encouraging, and clear — like a patient tutor.
+4. Always refer to yourself as EDITH.
+
+OUTPUT FORMAT — follow exactly:
+- Output ONLY the answer. No prefix, no label, no "EDITH:" at the start.
+- No preamble: do NOT start with "Sure!", "Of course!", "Great question!", "Certainly!", "Absolutely!", or any similar phrase.
+- No sign-off: do NOT end with "I hope this helps!", "Feel free to ask!", "Let me know if you have questions!", or similar.
+- Use **bold** for key terms on first mention.
+- Use bullet or numbered lists for steps or grouped items.
+- Use ## headings ONLY for long structured explanations — not for short answers.
+- Use > blockquotes for warnings or important notes.
+- Use tables only when comparing two or more concepts side by side.
+- Use `code` only for actual syntax or commands.
+- Do NOT wrap the whole response in a code fence.
+- Short questions get short answers. Do not pad or over-explain.
 
 {$historyBlock}
 Student: {$question}
@@ -238,7 +235,44 @@ Student: {$question}
 EDITH:
 PROMPT;
 
-        return $this->callText($prompt);
+        $raw = $this->callText($prompt);
+        return $this->cleanTutorResponse($raw);
+    }
+
+    /**
+     * Strip common junk patterns from EDITH tutor responses:
+     * - Leading "EDITH:" label
+     * - Preamble filler phrases
+     * - Trailing sign-off phrases
+     * - Wrapping code fences around the whole response
+     */
+    private function cleanTutorResponse(string $text): string
+    {
+        $text = trim($text);
+
+        // Remove leading "EDITH:" prefix (case-insensitive, with optional space/newline)
+        $text = preg_replace('/^EDITH\s*:\s*/i', '', $text);
+
+        // Remove leading preamble phrases (whole first sentence if it's filler)
+        $preambles = [
+            '/^(Sure|Of course|Certainly|Absolutely|Great question|Good question|That\'s a great question|No problem|Happy to help|I\'d be happy to|Let me explain|Let me help)[^a-z]*[!.,]?\s*/i',
+        ];
+        foreach ($preambles as $pattern) {
+            $text = preg_replace($pattern, '', $text);
+        }
+
+        // Remove trailing sign-off phrases (last line if it's filler)
+        $signoffs = [
+            '/[\n\r]+\s*(I hope (this|that) helps?!?\.?|Feel free to ask( (me )?anything)?!?\.?|Let me know if you (have|need) (any )?(more |other )?questions?!?\.?|Don\'t hesitate to ask!?\.?|If you have (any )?more questions?,? feel free to ask!?\.?|Is there anything else you\'d like to know\??\.?)\s*$/i',
+        ];
+        foreach ($signoffs as $pattern) {
+            $text = preg_replace($pattern, '', $text);
+        }
+
+        // Remove wrapping code fence (```...``` around the entire response)
+        $text = preg_replace('/^```[a-z]*\r?\n([\s\S]*?)\r?\n```$/i', '$1', trim($text));
+
+        return trim($text);
     }
 
     public function generateFlashcards(string $courseTitle, string $courseContent, string $topic, int $count = 10): array

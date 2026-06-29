@@ -10,7 +10,6 @@ use App\Models\StudentCourseProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class ActivitySubmissionController extends Controller
 {
@@ -18,11 +17,11 @@ class ActivitySubmissionController extends Controller
 
     public function store(Request $request, CourseModule $module)
     {
-        if (! $module->isActivity()) abort(404);
+        if (!$module->isActivity()) abort(404);
 
         $user = Auth::user();
 
-        if (! $this->studentHasAccessToCourse($module->course)) abort(403);
+        if (!$this->studentHasAccessToCourse($module->course)) abort(403);
 
         $existing = ActivitySubmission::where('module_id', $module->module_id)
             ->where('student_id', $user->user_id)
@@ -39,7 +38,7 @@ class ActivitySubmissionController extends Controller
             'file'            => 'nullable|file|max:51200',
         ]);
 
-        if (! $request->filled('submission_text') && ! $request->hasFile('file')) {
+        if (!$request->filled('submission_text') && !$request->hasFile('file')) {
             return back()->withErrors([
                 'submission_text' => 'Provide a text answer or upload a file (or both).',
             ]);
@@ -53,11 +52,7 @@ class ActivitySubmissionController extends Controller
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            // Remove old file if re-submitting
-            if ($existing && $existing->file_path) {
-                Storage::disk('local')->delete($existing->file_path);
-            }
-            $data['file_path']          = $file->store("activity-submissions/{$module->module_id}", 'local');
+            $data['file_data']          = 'data:' . $file->getMimeType() . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
             $data['file_original_name'] = $file->getClientOriginalName();
             $data['file_mime_type']     = $file->getMimeType();
         }
@@ -83,31 +78,32 @@ class ActivitySubmissionController extends Controller
     }
 
     /**
-     * Download/preview a student's own submission file.
+     * Download student submission file from DB.
      */
     public function downloadFile(ActivitySubmission $submission)
     {
         $user = Auth::user();
 
-        // Student can only download their own; teacher can download any in their course
         $isOwner   = (int) $submission->student_id === (int) $user->user_id;
         $isTeacher = $user->role === 'teacher'
             && (int) $submission->module->course->teacher_id === (int) $user->user_id;
 
-        if (! $isOwner && ! $isTeacher) abort(403);
+        if (!$isOwner && !$isTeacher) abort(403);
+        if (!$submission->file_data) abort(404, 'File not found.');
 
-        if (! $submission->file_path || ! Storage::disk('local')->exists($submission->file_path)) {
-            abort(404, 'File not found.');
-        }
+        $base64 = preg_replace('/^data:[^;]+;base64,/', '', $submission->file_data);
+        $binary = base64_decode($base64);
+        $mime   = $submission->file_mime_type ?? 'application/octet-stream';
 
-        return Storage::disk('local')->download(
-            $submission->file_path,
-            $submission->file_original_name
-        );
+        return response($binary, 200, [
+            'Content-Type'        => $mime,
+            'Content-Disposition' => 'attachment; filename="' . $submission->file_original_name . '"',
+            'Content-Length'      => strlen($binary),
+        ]);
     }
 
     /**
-     * Stream submission file inline (for preview in browser).
+     * Preview submission file inline from DB.
      */
     public function previewFile(ActivitySubmission $submission)
     {
@@ -117,18 +113,17 @@ class ActivitySubmissionController extends Controller
         $isTeacher = $user->role === 'teacher'
             && (int) $submission->module->course->teacher_id === (int) $user->user_id;
 
-        if (! $isOwner && ! $isTeacher) abort(403);
+        if (!$isOwner && !$isTeacher) abort(403);
+        if (!$submission->file_data) abort(404, 'File not found.');
 
-        if (! $submission->file_path || ! Storage::disk('local')->exists($submission->file_path)) {
-            abort(404, 'File not found.');
-        }
+        $base64 = preg_replace('/^data:[^;]+;base64,/', '', $submission->file_data);
+        $binary = base64_decode($base64);
+        $mime   = $submission->file_mime_type ?? 'application/octet-stream';
 
-        $mime = $submission->file_mime_type ?? 'application/octet-stream';
-        $path = Storage::disk('local')->path($submission->file_path);
-
-        return response()->file($path, [
+        return response($binary, 200, [
             'Content-Type'        => $mime,
             'Content-Disposition' => 'inline; filename="' . $submission->file_original_name . '"',
+            'Content-Length'      => strlen($binary),
             'Cache-Control'       => 'private, max-age=3600',
         ]);
     }
