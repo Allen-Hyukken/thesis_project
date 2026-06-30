@@ -16,7 +16,7 @@
     </a>
 </li>
 
-<li class="sidebar-item {{ request()->routeIs('teacher.courses*') ? 'active' : '' }}">
+<li class="sidebar-item {{ request()->routeIs('teacher.courses') ? 'active' : '' }}">
     <a href="{{ route('teacher.courses') }}" class="sidebar-link">
         <i class="bi bi-journal-bookmark-fill"></i>
         <span>Courses</span>
@@ -27,7 +27,7 @@
 
 
 
-<li class="sidebar-item {{ request()->routeIs('teacher.courses.trash') ?  : '' }}">
+<li class="sidebar-item {{ request()->routeIs('teacher.courses.trash') ? 'active' : '' }}">
     <a href="{{ route('teacher.courses.trash') }}" class="sidebar-link">
         <i class="bi bi-trash3"></i>
         <span>Recycle Bin</span>

@@ -139,11 +139,16 @@ header{
     padding: .25rem 0 1rem;
 }
 .burger-btn{
-    background: var(--surface-card);
-    border: 1px solid var(--surface-border);
-    border-radius: var(--radius-sm);
-    padding: .5rem .65rem !important;
-    box-shadow: var(--shadow-sm);
+    display: inline-flex !important;
+    align-items: center;
+    color: var(--ink-700, #3a4356);
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: .5rem !important;
+}
+.burger-btn:hover{
+    color: var(--tup-primary, #435ebe);
 }
 
 /* ---------- 5. Cards ---------- */
@@ -647,4 +652,80 @@ footer .footer{
     white-space: normal;
     word-break: normal;
     overflow-wrap: break-word;
+}
+
+.file-row{
+    border: 1px solid var(--surface-border, #dfe3e7);
+    background: var(--surface-card, #fff);
+    transition: box-shadow .15s ease;
+}
+
+/* ---------- simple-datatables dark mode override ---------- */
+[data-theme="dark"] .datatable-input,
+[data-theme="dark"] .datatable-selector{
+    background-color: var(--surface-card, #1c2030) !important;
+    border-color: var(--surface-border, #2b3047) !important;
+    color: var(--ink-700, #cfd3e3) !important;
+}
+[data-theme="dark"] .datatable-input::placeholder{
+    color: var(--ink-500, #9aa0b8) !important;
+}
+[data-theme="dark"] .datatable-top,
+[data-theme="dark"] .datatable-bottom{
+    color: var(--ink-500, #9aa0b8) !important;
+}
+[data-theme="dark"] .datatable-table thead th{
+    background-color: var(--surface, #14171f) !important;
+    color: var(--ink-700, #cfd3e3) !important;
+    border-color: var(--surface-border, #2b3047) !important;
+}
+[data-theme="dark"] .datatable-table tbody tr{
+    background-color: var(--surface-card, #1c2030) !important;
+    color: var(--ink-700, #cfd3e3) !important;
+}
+[data-theme="dark"] .datatable-table tbody tr:hover{
+    background-color: var(--surface, #14171f) !important;
+}
+[data-theme="dark"] .datatable-table td,
+[data-theme="dark"] .datatable-table th{
+    border-color: var(--surface-border, #2b3047) !important;
+}
+[data-theme="dark"] .datatable-pagination a{
+    color: var(--ink-700, #cfd3e3) !important;
+}
+[data-theme="dark"] .datatable-pagination a.active{
+    background-color: var(--tup-primary, #435ebe) !important;
+    color: #fff !important;
+    border-color: var(--tup-primary, #435ebe) !important;
+}
+[data-theme="dark"] .datatable-pagination a:hover{
+    background-color: var(--surface, #14171f) !important;
+}
+[data-theme="dark"] .datatable-empty{
+    background-color: var(--surface-card, #1c2030) !important;
+    color: var(--ink-500, #9aa0b8) !important;
+}
+[data-theme="dark"] .datatable-sorter::before,
+[data-theme="dark"] .datatable-sorter::after{
+    filter: invert(1) brightness(2);
+}
+
+[data-theme="dark"] .btn-outline-secondary{
+    color: var(--ink-700, #cfd3e3) !important;
+    border-color: var(--surface-border, #2b3047) !important;
+}
+[data-theme="dark"] .btn-outline-secondary:hover{
+    background-color: var(--surface, #14171f) !important;
+    color: var(--ink-900, #f1f3fa) !important;
+    border-color: var(--surface-border, #2b3047) !important;
+}
+
+[data-theme="dark"] .nav-tabs{
+    background-color: transparent !important;
+}
+[data-theme="dark"] .nav-tabs .nav-item{
+    background-color: transparent !important;
+}
+[data-theme="dark"] .nav-tabs .nav-link:not(.active){
+    background-color: var(--surface-card, #1a1e2c) !important;
 }

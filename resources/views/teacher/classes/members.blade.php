@@ -129,6 +129,59 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/vendors/simple-datatables/style.css') }}">
+    <style>
+        [data-theme="dark"] .dataTable-input,
+        [data-theme="dark"] .datatable-input,
+        [data-theme="dark"] input.dataTable-input,
+        [data-theme="dark"] #membersTable_wrapper input[type="search"],
+        [data-theme="dark"] .dataTable-top input{
+            background-color: #1c2030 !important;
+            border-color: #2b3047 !important;
+            color: #cfd3e3 !important;
+        }
+        [data-theme="dark"] .dataTable-input::placeholder,
+        [data-theme="dark"] .datatable-input::placeholder{
+            color: #9aa0b8 !important;
+        }
+        [data-theme="dark"] .dataTable-selector,
+        [data-theme="dark"] .datatable-selector{
+            background-color: #1c2030 !important;
+            border-color: #2b3047 !important;
+            color: #cfd3e3 !important;
+        }
+        [data-theme="dark"] .dataTable-table thead th,
+        [data-theme="dark"] .datatable-table thead th{
+            background-color: #14171f !important;
+            color: #cfd3e3 !important;
+            border-color: #2b3047 !important;
+        }
+        [data-theme="dark"] .dataTable-table tbody tr,
+        [data-theme="dark"] .datatable-table tbody tr{
+            background-color: #1c2030 !important;
+            color: #cfd3e3 !important;
+        }
+        [data-theme="dark"] .dataTable-table td,
+        [data-theme="dark"] .dataTable-table th,
+        [data-theme="dark"] .datatable-table td,
+        [data-theme="dark"] .datatable-table th{
+            border-color: #2b3047 !important;
+        }
+        [data-theme="dark"] .dataTable-pagination a,
+        [data-theme="dark"] .datatable-pagination a{
+            color: #cfd3e3 !important;
+        }
+        [data-theme="dark"] .dataTable-pagination a.active,
+        [data-theme="dark"] .datatable-pagination a.active{
+            background-color: #435ebe !important;
+            color: #fff !important;
+        }
+        [data-theme="dark"] .dataTable-bottom,
+        [data-theme="dark"] .datatable-bottom,
+        [data-theme="dark"] .dataTable-info,
+        [data-theme="dark"] .datatable-info{
+            color: #9aa0b8 !important;
+        }
+    </style>
 @endpush
 
 @push('scripts')
