@@ -51,7 +51,7 @@ Route::post('/logout',   [AuthController::class, 'logout'])->name('logout');
 | Teacher Routes
 |--------------------------------------------------------------------------
 */
-Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
+Route::group(['prefix' => 'teacher', 'as' => 'teacher.', 'middleware' => ['auth', 'role:teacher']], function () {
 
     Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
 
@@ -135,7 +135,7 @@ Route::group(['prefix' => 'teacher', 'as' => 'teacher.'], function () {
 | Student Routes
 |--------------------------------------------------------------------------
 */
-Route::group(['prefix' => 'student', 'as' => 'student.'], function () {
+Route::group(['prefix' => 'student', 'as' => 'student.', 'middleware' => ['auth', 'role:student']], function () {
 
     Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
