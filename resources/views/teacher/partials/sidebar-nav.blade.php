@@ -35,7 +35,7 @@
 </li>
 <li class="sidebar-title">AI Tools</li>
 
-<li class="sidebar-item {{ request()->routeIs('teacher.ai-generate') ? 'active' : '' }}">
+<li class="sidebar-item {{ request()->routeIs('teacher.ai-generate') || request()->routeIs('teacher.courses.create') ? 'active' : '' }}">
     <a href="{{ route('teacher.ai-generate') }}" class="sidebar-link">
         <i class="bi bi-stars"></i>
         <span>AI Course Builder</span>
