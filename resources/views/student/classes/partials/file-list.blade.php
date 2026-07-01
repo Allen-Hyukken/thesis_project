@@ -111,11 +111,10 @@
         };
     @endphp
 
-    <div class="file-row d-flex align-items-center gap-3 p-3 rounded mb-2"
-         style="border:1px solid #dfe3e7; background:#fff; transition: box-shadow .15s;">
+    <div class="file-row d-flex align-items-center gap-3 p-3 rounded mb-2">
 
-        <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded"
-             style="width:44px; height:44px; background:#ebf3ff;">
+        <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded file-icon-box"
+             style="width:44px; height:44px;">
             <i class="bi {{ $icon }} fs-4"></i>
         </div>
 

@@ -729,3 +729,68 @@ footer .footer{
 [data-theme="dark"] .nav-tabs .nav-link:not(.active){
     background-color: var(--surface-card, #1a1e2c) !important;
 }
+
+[data-theme="dark"] .accordion-button{
+    background-color: var(--surface-card) !important;
+    color: var(--ink-900) !important;
+    border-color: var(--surface-border) !important;
+    box-shadow: none !important;
+}
+[data-theme="dark"] .accordion-button:not(.collapsed){
+    background-color: var(--surface) !important;
+    color: var(--tup-primary) !important;
+}
+[data-theme="dark"] .accordion-item{
+    background-color: var(--surface-card) !important;
+    border-color: var(--surface-border) !important;
+}
+[data-theme="dark"] .accordion-body{
+    background-color: var(--surface-card) !important;
+    color: var(--ink-700) !important;
+}
+[data-theme="dark"] .accordion-button::after{
+    filter: invert(1) brightness(2);
+}
+
+/* ---------- EDITH lesson content dark mode ---------- */
+[data-theme="dark"] .edith-content{
+    color: var(--ink-700) !important;
+}
+[data-theme="dark"] .edith-content h2,
+[data-theme="dark"] .edith-content h3{
+    color: var(--ink-900) !important;
+    border-color: var(--surface-border) !important;
+}
+[data-theme="dark"] .edith-content strong{
+    color: var(--ink-900) !important;
+}
+[data-theme="dark"] .edith-content em{
+    color: var(--ink-500) !important;
+}
+[data-theme="dark"] .edith-content code{
+    background: var(--surface) !important;
+    border-color: var(--surface-border) !important;
+    color: #f87171 !important;
+}
+[data-theme="dark"] .edith-content pre{
+    background: var(--surface) !important;
+    border-color: var(--surface-border) !important;
+}
+[data-theme="dark"] .edith-content pre code{
+    color: var(--ink-700) !important;
+}
+[data-theme="dark"] .edith-content blockquote{
+    background: var(--tup-success-light) !important;
+    color: #4ade80 !important;
+}
+[data-theme="dark"] .edith-content th{
+    background: var(--surface) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--ink-700) !important;
+}
+[data-theme="dark"] .edith-content td{
+    border-color: var(--surface-border) !important;
+}
+[data-theme="dark"] .edith-content tr:nth-child(even) td{
+    background: var(--surface) !important;
+}
