@@ -22,8 +22,7 @@
 
     <div class="auth2-left">
         <div class="auth2-top">
-            <a href="{{ url('/') }}" class="auth2-brand">
-            </a>
+            <a href="{{ url('/') }}" class="auth2-brand"></a>
             <div class="auth2-toggle-group">
                 <i class="bi bi-moon-stars-fill" id="theme-toggle-icon"></i>
                 <label class="theme-switch">
@@ -35,39 +34,46 @@
 
         <div class="auth2-form-wrap">
             <div class="auth2-eyebrow">Account recovery</div>
-            <h1 class="auth2-h1">Forgot your password?</h1>
-            <p class="auth2-sub">Enter your email and we'll send you a reset link.</p>
+            <h1 class="auth2-h1">Create new password</h1>
+            <p class="auth2-sub">Please choose a secure password that you haven't used here before.</p>
 
             @if ($errors->any())
                 <div class="auth2-error" style="color: #dc3545; margin-bottom: 1rem;">{{ $errors->first() }}</div>
             @endif
 
-            @if (session('status'))
-                <div class="auth2-success" style="color: #198754; margin-bottom: 1rem;">
-                    {{ session('status') }}
-                </div>
-            @endif
-
-            <form action="{{ route('password.email') }}" method="POST">
+            <form action="{{ route('password.update') }}" method="POST">
                 @csrf
 
+                <input type="hidden" name="token" value="{{ $token }}">
+                <input type="hidden" name="email" value="{{ $email }}">
+
                 <div class="auth2-field">
-                    <label class="auth2-label" for="email">Email</label>
+                    <label class="auth2-label" for="password">New Password</label>
                     <div class="auth2-input-wrap">
-                        <i class="bi bi-envelope"></i>
-                        <input type="email" name="email" id="email"
-                               class="auth2-input @error('email') is-invalid @enderror"
-                               placeholder="you@example.com" value="{{ old('email') }}">
+                        <i class="bi bi-key"></i>
+                        <input type="password" name="password" id="password"
+                               class="auth2-input"
+                               placeholder="Minimum 8 characters" required>
                     </div>
                 </div>
 
-                <button type="submit" class="auth2-btn">
-                    Send reset link <i class="bi bi-arrow-right"></i>
+                <div class="auth2-field" style="margin-top: 1rem;">
+                    <label class="auth2-label" for="password_confirmation">Confirm Password</label>
+                    <div class="auth2-input-wrap">
+                        <i class="bi bi-key-fill"></i>
+                        <input type="password" name="password_confirmation" id="password_confirmation"
+                               class="auth2-input"
+                               placeholder="Repeat new password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="auth2-btn" style="margin-top: 1.5rem;">
+                    Update password <i class="bi bi-check-circle"></i>
                 </button>
             </form>
 
             <div class="auth2-foot">
-                <p>Remember your password? <a href="{{ route('login') }}">Log in</a></p>
+                <p>Nevermind, take me back to <a href="{{ route('login') }}">Log in</a></p>
             </div>
         </div>
     </div>
@@ -78,19 +84,19 @@
 
         <div class="auth2-card">
             <div class="auth2-card-head">
-                <div class="auth2-card-avatar"><i class="bi bi-shield-lock"></i></div>
+                <div class="auth2-card-avatar"><i class="bi bi-shield-check"></i></div>
                 <div>
-                    <div class="auth2-card-name">Account security</div>
-                    <div class="auth2-card-tag">Quick & secure</div>
+                    <div class="auth2-card-name">Strong Security</div>
+                    <div class="auth2-card-tag">Encrypted session</div>
                 </div>
             </div>
-            <div class="auth2-bubble">We'll email you a secure link to reset your password.</div>
-            <div class="auth2-bubble alt">Check your inbox in a minute or two.</div>
+            <div class="auth2-bubble">Once updated, your token is destroyed immediately.</div>
+            <div class="auth2-bubble alt">You will be redirected straight to log in.</div>
         </div>
 
         <div class="auth2-tagline">
-            <h2>You'll be back in no time.</h2>
-            <p>One email, one click, and you're right back to learning.</p>
+            <h2>Secure your space.</h2>
+            <p>One update, one confirmation, and you're safely back to your dashboard.</p>
         </div>
     </div>
 
