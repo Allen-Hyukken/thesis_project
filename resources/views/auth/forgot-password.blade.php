@@ -39,11 +39,11 @@
             <p class="auth2-sub">Enter your email and we'll send you a reset link.</p>
 
             @if ($errors->any())
-                <div class="auth2-error" style="color: #dc3545; margin-bottom: 1rem;">{{ $errors->first() }}</div>
+                <div class="auth2-error">{{ $errors->first() }}</div>
             @endif
 
             @if (session('status'))
-                <div class="auth2-success" style="color: #198754; margin-bottom: 1rem;">
+                <div class="auth2-status" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:14px;">
                     {{ session('status') }}
                 </div>
             @endif

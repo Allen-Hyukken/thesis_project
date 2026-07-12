@@ -42,14 +42,12 @@ Route::get('/register',        fn () => view('auth.register'))->name('register')
 Route::get('/forgot-password', fn () => view('auth.forgot-password'))->name('password.request');
 Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
 
-// ADD THESE TWO LINES HERE:
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
-Route::post('/reset-password',        [AuthController::class, 'resetPassword'])->name('password.update');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 Route::post('/login',    [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout',   [AuthController::class, 'logout'])->name('logout');
-
 
 
 /*
