@@ -28,7 +28,7 @@ class ResetPasswordMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Reset your Acadly password',
+            subject: 'Reset your TUP-LMS password',
         );
     }
 

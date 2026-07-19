@@ -133,7 +133,7 @@
 
         <div class="auth2-tagline">
             <h2>Join a smarter classroom.</h2>
-            <p>Whether you're teaching or learning, Acadly adapts the tools to fit you.</p>
+            <p>Whether you're teaching or learning, TUP-LMS adapts the tools to fit you.</p>
         </div>
     </div>
 
